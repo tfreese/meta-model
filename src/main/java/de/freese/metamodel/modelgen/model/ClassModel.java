@@ -13,7 +13,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import de.freese.metamodel.metagen.model.Column;
 import de.freese.metamodel.metagen.model.Table;
 import de.freese.metamodel.modelgen.mapping.Type;
 
@@ -182,7 +184,7 @@ public class ClassModel
     }
 
     /**
-     * Liefert des Typ des Attributs.
+     * Liefert das Model des Attributs.
      *
      * @param fieldName String
      * @return {@link Type}
@@ -193,13 +195,34 @@ public class ClassModel
     }
 
     /**
-     * Liefert alle Attribut-Namen.
+     * Liefert alle Attribute.
      *
      * @return {@link List}<String>
      */
     public List<FieldModel> getFields()
     {
         return new ArrayList<>(this.fields);
+    }
+
+    /**
+     * Liefert alle Attribute mit ForeignKeys.
+     *
+     * @return {@link List}<String>
+     */
+    public List<FieldModel> getForeignKeyFields()
+    {
+        // @formatter:off
+        List<Column> fkColumns = getTable().getColumnsOrdered().stream()
+                .filter(c -> c.getForeignKey() != null)
+                .distinct()
+                .collect(Collectors.toList());
+
+        List<FieldModel> fkFields = this.fields.stream()
+                .filter(field -> fkColumns.contains(field.getColumn()))
+                .collect(Collectors.toList());
+        // @formatter:on
+
+        return fkFields;
     }
 
     /**
@@ -239,11 +262,52 @@ public class ClassModel
     }
 
     /**
+     * Liefert alle Attribute des PrimaryKeys.
+     *
+     * @return {@link List}<String>
+     */
+    public List<FieldModel> getPrimaryKeyFields()
+    {
+        List<Column> pkColumns = getTable().getPrimaryKey().getColumnsOrdered();
+
+        // @formatter:off
+        List<FieldModel> pkFields = this.fields.stream()
+                .filter(field -> pkColumns.contains(field.getColumn()))
+                .distinct()
+                .collect(Collectors.toList());
+        // @formatter:on
+
+        return pkFields;
+    }
+
+    /**
      * @return {@link Table}
      */
     public Table getTable()
     {
         return this.table;
+    }
+
+    /**
+     * Liefert alle Attribute mit UniqueConstraints.
+     *
+     * @return {@link List}<String>
+     */
+    public List<FieldModel> getUniqueConstraintFields()
+    {
+        // @formatter:off
+        List<Column> ucColumns = getTable().getUniqueConstraints().stream()
+                .flatMap(uc -> uc.getColumnsOrdered().stream())
+                .distinct()
+                .collect(Collectors.toList());
+
+        List<FieldModel> ucFields = this.fields.stream()
+                .filter(field -> ucColumns.contains(field.getColumn()))
+                .distinct()
+                .collect(Collectors.toList());
+        // @formatter:on
+
+        return ucFields;
     }
 
     /**

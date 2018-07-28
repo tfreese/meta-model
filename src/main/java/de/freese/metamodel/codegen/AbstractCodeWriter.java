@@ -67,7 +67,8 @@ public abstract class AbstractCodeWriter implements CodeWriter
         writeFields(pw, model);
         writeConstructor(pw, model);
         writeMethods(pw, model);
-        writeHashcodeEquals(pw, model);
+        writeHashcode(pw, model);
+        writeEquals(pw, model);
         writeToString(pw, model);
         writeClassEnd(pw, model);
     }
@@ -160,6 +161,13 @@ public abstract class AbstractCodeWriter implements CodeWriter
 
     /**
      * @param pw {@link PrintWriter}
+     * @param model {@link ClassModel}
+     * @throws IOException Falls was schief geht.
+     */
+    protected abstract void writeEquals(final PrintWriter pw, final ClassModel model) throws IOException;
+
+    /**
+     * @param pw {@link PrintWriter}
      * @param fieldModel {@link FieldModel}
      * @throws IOException Falls was schief geht.
      */
@@ -184,7 +192,7 @@ public abstract class AbstractCodeWriter implements CodeWriter
      * @param model {@link ClassModel}
      * @throws IOException Falls was schief geht.
      */
-    protected abstract void writeHashcodeEquals(final PrintWriter pw, final ClassModel model) throws IOException;
+    protected abstract void writeHashcode(final PrintWriter pw, final ClassModel model) throws IOException;
 
     /**
      * @param pw {@link PrintWriter}

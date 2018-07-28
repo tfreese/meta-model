@@ -82,7 +82,7 @@ public class JavaCodeWriter extends AbstractCodeWriter
     @Override
     protected void writeClassStart(final PrintWriter pw, final ClassModel model) throws IOException
     {
-        pw.print(String.format("public class %s", model.getName()));
+        pw.print("public class " + model.getName());
 
         List<Class<?>> interfaces = model.getInterfaces();
 
@@ -107,7 +107,7 @@ public class JavaCodeWriter extends AbstractCodeWriter
             pw.println(TAB + "/**");
             pw.println(TAB + " *");
             pw.println(TAB + " */");
-            pw.printf("%sprivate static final long serialVersionUID = %dL;%n", TAB, oid);
+            pw.printf(TAB + "private static final long serialVersionUID = %dL;%n", oid);
         }
     }
 
@@ -162,11 +162,85 @@ public class JavaCodeWriter extends AbstractCodeWriter
 
             for (FieldModel fieldModel : model.getFields())
             {
-                pw.printf(TAB + TAB + "this.%s = %s;%n", fieldModel.getName(), fieldModel.getName());
+                if (fieldModel.getColumn().isNullable())
+                {
+                    pw.printf(TAB + TAB + "this.%1$s = %1$s;%n", fieldModel.getName());
+                }
+                else
+                {
+                    pw.printf(TAB + TAB + "this.%1$s = Objects.requireNonNull(%1$s, \"not null value: %1$s required\");%n", fieldModel.getName());
+                }
             }
 
             pw.println(TAB + "}");
         }
+    }
+
+    /**
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeEquals(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     */
+    @Override
+    protected void writeEquals(final PrintWriter pw, final ClassModel model) throws IOException
+    {
+        pw.println();
+        pw.println(TAB + "/**");
+        pw.println(TAB + " * @see java.lang.Object#equals(java.lang.Object)");
+        pw.println(TAB + " */");
+        pw.println(TAB + "@Override");
+        pw.println(TAB + "public boolean equals(final Object obj)");
+        pw.println(TAB + "{");
+
+        pw.println(TAB + TAB + "if (this == obj)");
+        pw.println(TAB + TAB + "{");
+        pw.println(TAB + TAB + TAB + "return true;");
+        pw.println(TAB + TAB + "}");
+
+        pw.println();
+        pw.println(TAB + TAB + "if (obj == null)");
+        pw.println(TAB + TAB + "{");
+        pw.println(TAB + TAB + TAB + "return false;");
+        pw.println(TAB + TAB + "}");
+
+        pw.println();
+        pw.println(TAB + TAB + "if (getClass() != obj.getClass())");
+        pw.println(TAB + TAB + "{");
+        pw.println(TAB + TAB + TAB + "return false;");
+        pw.println(TAB + TAB + "}");
+
+        pw.println();
+        pw.printf(TAB + TAB + "%1$s other = (%1$s) obj;%n", model.getName());
+
+        for (FieldModel fieldModel : model.getFields())
+        {
+            Type type = fieldModel.getType();
+            pw.println();
+
+            if (type.getTypeClass().isPrimitive())
+            {
+                pw.printf(TAB + TAB + "if (this.%1$s != other.%1$s)%n", fieldModel.getName());
+                pw.println(TAB + TAB + "{");
+                pw.println(TAB + TAB + TAB + "return false;");
+                pw.println(TAB + TAB + "}");
+            }
+            else
+            {
+                pw.println(TAB + TAB + "if (this." + fieldModel.getName() + " == null)");
+                pw.println(TAB + TAB + "{");
+                pw.println(TAB + TAB + TAB + "if (other." + fieldModel.getName() + " == null)");
+                pw.println(TAB + TAB + TAB + "{");
+                pw.println(TAB + TAB + TAB + TAB + "return false;");
+                pw.println(TAB + TAB + TAB + "}");
+                pw.println(TAB + TAB + "}");
+                pw.printf(TAB + TAB + "else if(!this.%1$s.equals(other.%1$s))%n", fieldModel.getName());
+                pw.println(TAB + TAB + "{");
+                pw.println(TAB + TAB + TAB + "return false;");
+                pw.println(TAB + TAB + "}");
+            }
+        }
+
+        pw.println();
+        pw.println(TAB + TAB + "return true;");
+        pw.println(TAB + "}");
     }
 
     /**
@@ -219,98 +293,69 @@ public class JavaCodeWriter extends AbstractCodeWriter
 
             Type type = fieldModel.getType();
 
-            pw.printf("%sprivate %s %s = %s;%n", TAB, type.getTypeClass().getSimpleName(), fieldModel.getName(), type.getDefaultValueAsString());
+            pw.printf(TAB + "private %s %s = %s;%n", type.getTypeClass().getSimpleName(), fieldModel.getName(), type.getDefaultValueAsString());
         }
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeHashcodeEquals(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeHashcode(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
      */
     @Override
-    protected void writeHashcodeEquals(final PrintWriter pw, final ClassModel model) throws IOException
+    protected void writeHashcode(final PrintWriter pw, final ClassModel model) throws IOException
     {
-        // TODO Auto-generated method stub
-        // @formatter:off
-//        /**
-//         * @see java.lang.Object#hashCode()
-//         */
-//        @Override
-//        public int hashCode()
-//        {
-//        final int prime = 31;
-//        int result = 1;
-//        result = prime * result + ((this.id_Double == null) ? 0 : this.id_Double.hashCode());
-//        result = prime * result + ((this.id_Float == null) ? 0 : this.id_Float.hashCode());
-//        result = prime * result + ((this.id_Integer == null) ? 0 : this.id_Integer.hashCode());
-//        result = prime * result + ((this.id_Long == null) ? 0 : this.id_Long.hashCode());
-//
-//        long temp;
-//        temp = Double.doubleToLongBits(this.id_double);
-//        result = prime * result + (int) (temp ^ (temp >>> 32));
-//        result = prime * result + Float.floatToIntBits(this.id_float);
-//        result = prime * result + this.id_int;
-//        result = prime * result + (int) (this.id_long ^ (this.id_long >>> 32));
-//        result = prime * result + ((this.name == null) ? 0 : this.name.hashCode());
-//        result = prime * result + ((this.vorname == null) ? 0 : this.vorname.hashCode());
-//        return result;
-//        }
-//
-//        /**
-//         * @see java.lang.Object#equals(java.lang.Object)
-//         */
-//        @Override
-//        public boolean equals(final Object obj)
-//        {
-//            if (this == obj)
-//            {
-//                return true;
-//            }
-//
-//            if (obj == null)
-//            {
-//                return false;
-//            }
-//
-//            if (getClass() != obj.getClass())
-//            {
-//                return false;
-//            }
-//
-//            Person other = (Person) obj;
-//
-//            if (this.id != other.id)
-//            {
-//                return false;
-//            }
-//
-//            if (this.name == null)
-//            {
-//                if (other.name != null)
-//                {
-//                    return false;
-//                }
-//            }
-//            else if (!this.name.equals(other.name))
-//            {
-//                return false;
-//            }
-//
-//            if (this.vorname == null)
-//            {
-//                if (other.vorname != null)
-//                {
-//                    return false;
-//                }
-//            }
-//            else if (!this.vorname.equals(other.vorname))
-//            {
-//                return false;
-//            }
-//
-//            return true;
-//        }
+        pw.println();
+        pw.println(TAB + "/**");
+        pw.println(TAB + " * @see java.lang.Object#hashCode()");
+        pw.println(TAB + " */");
+        pw.println(TAB + "@Override");
+        pw.println(TAB + "public int hashCode()");
+        pw.println(TAB + "{");
 
-        // @formatter:on
+        pw.println(TAB + TAB + "final int prime = 31;");
+        pw.println(TAB + TAB + "int result = 1;");
+
+        // double vorhanden ?
+        for (FieldModel fieldModel : model.getFields())
+        {
+            if (double.class.equals(fieldModel.getType().getTypeClass()))
+            {
+                pw.println(TAB + TAB + "long temp = 0L;");
+                break;
+            }
+        }
+
+        pw.println();
+
+        for (FieldModel fieldModel : model.getFields())
+        {
+            Type type = fieldModel.getType();
+
+            if (int.class.equals(type.getTypeClass()))
+            {
+                pw.println(TAB + TAB + "result = prime * result + this." + fieldModel.getName() + ";");
+            }
+            else if (long.class.equals(type.getTypeClass()))
+            {
+                pw.printf(TAB + TAB + "result = prime * result + (int) (this.%1$s ^ (this.%1$s >>> 32));%n", fieldModel.getName());
+            }
+            else if (double.class.equals(type.getTypeClass()))
+            {
+                pw.println(TAB + TAB + "temp = Double.doubleToLongBits(this." + fieldModel.getName() + ");");
+                pw.println(TAB + TAB + "result = prime * result + (int) (temp ^ (temp >>> 32));");
+            }
+            else if (float.class.equals(type.getTypeClass()))
+            {
+                pw.println(TAB + TAB + "result = prime * result + Float.floatToIntBits(this." + fieldModel.getName() + ");");
+            }
+            else
+            {
+                pw.printf(TAB + TAB + "result = prime * result + ((this.%1$s == null) ? 0 : this.%1$s.hashCode());%n", fieldModel.getName());
+            }
+        }
+
+        pw.println();
+        pw.println(TAB + TAB + "return result;");
+        pw.println(TAB + "}");
     }
 
     /**
@@ -351,21 +396,30 @@ public class JavaCodeWriter extends AbstractCodeWriter
             // Setter
             pw.println();
             pw.println(TAB + "/**");
-            pw.printf(TAB + " * @param %s %s%n", fieldName, typeSimpleName);
+            pw.println(TAB + " * @param " + fieldName + " " + typeSimpleName);
             pw.println(TAB + " */");
-            pw.printf(TAB + "public void set%s(%s %s)%n", StringUtils.capitalize(fieldName), typeSimpleName, fieldName);
+            pw.println(TAB + "public void set" + StringUtils.capitalize(fieldName) + "(" + typeSimpleName + " " + fieldName + ")");
             pw.println(TAB + "{");
-            pw.printf(TAB + TAB + "this.%s = %s;%n", fieldName, fieldName);
+
+            if (fieldModel.getColumn().isNullable())
+            {
+                pw.printf(TAB + TAB + "this.%1$s = %1$s;%n", fieldName);
+            }
+            else
+            {
+                pw.printf(TAB + TAB + "this.%1$s = Objects.requireNonNull(%1$s, \"not null value: %1$s required\");%n", fieldName);
+            }
+
             pw.println(TAB + "}");
 
             // Getter
             pw.println();
             pw.println(TAB + "/**");
-            pw.printf(TAB + " * @return %s%n", typeSimpleName);
+            pw.println(TAB + " * @return " + typeSimpleName);
             pw.println(TAB + " */");
-            pw.printf(TAB + "public %s get%s()%n", typeSimpleName, StringUtils.capitalize(fieldName));
+            pw.println(TAB + "public " + typeSimpleName + " get" + StringUtils.capitalize(fieldName) + "()");
             pw.println(TAB + "{");
-            pw.printf(TAB + TAB + "return this.%s;%n", fieldName);
+            pw.println(TAB + TAB + "return this." + fieldName + ";");
             pw.println(TAB + "}");
         }
     }
@@ -386,6 +440,57 @@ public class JavaCodeWriter extends AbstractCodeWriter
     @Override
     protected void writeToString(final PrintWriter pw, final ClassModel model) throws IOException
     {
-        // TODO Auto-generated method stub
+        // Finde alle Attribute des PrimaryKeys.
+        List<FieldModel> fields = model.getPrimaryKeyFields();
+
+        if (fields.isEmpty())
+        {
+            // Finde alle Attribute mit UniqueConstraints.
+            fields = model.getUniqueConstraintFields();
+        }
+
+        if (fields.isEmpty())
+        {
+            // Finde alle Attribute mit ForeignKeys.
+            fields = model.getForeignKeyFields();
+        }
+
+        if (fields.isEmpty())
+        {
+            // Alle Attribute.
+            fields = model.getFields();
+        }
+
+        pw.println();
+        pw.println(TAB + "/**");
+        pw.println(TAB + " * @see java.lang.Object#toString()");
+        pw.println(TAB + " */");
+        pw.println(TAB + "@Override");
+        pw.println(TAB + "public String toString()");
+        pw.println(TAB + "{");
+
+        pw.println(TAB + TAB + "StringBuilder sb = new StringBuilder();");
+        pw.println(TAB + TAB + "sb.append(\"" + model.getName() + " [\");");
+
+        for (Iterator<FieldModel> iterator = fields.iterator(); iterator.hasNext();)
+        {
+            FieldModel fieldModel = iterator.next();
+            pw.printf(TAB + TAB + "sb.append(\"%1$s = \").append(this.%1$s)", fieldModel.getName());
+
+            if (iterator.hasNext())
+            {
+                pw.println(".append(\", \");");
+            }
+            else
+            {
+                pw.println(";");
+            }
+        }
+
+        pw.println(TAB + TAB + "sb.append(\"]\");");
+
+        pw.println();
+        pw.println(TAB + TAB + "return sb.toString();");
+        pw.println(TAB + "}");
     }
 }

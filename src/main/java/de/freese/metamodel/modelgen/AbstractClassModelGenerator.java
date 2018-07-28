@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.sql.JDBCType;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import javax.validation.constraints.NotNull;
@@ -82,6 +83,11 @@ public abstract class AbstractClassModelGenerator implements ClassModelGenerator
         classModel.setName(name);
 
         classModel.addClassComment(table.getComment());
+
+        if (config.isAddFullConstructor())
+        {
+            classModel.addImport(Objects.class.getName());
+        }
 
         return classModel;
     }
