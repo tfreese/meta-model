@@ -2,19 +2,19 @@
  * Created: 26.07.2018
  */
 
-package de.freese.metamodel.modelgen;
+package de.freese.metamodel;
 
+import java.nio.file.Path;
 import de.freese.metamodel.modelgen.mapping.TypeMapping;
-import de.freese.metamodel.modelgen.model.ClassModel;
 import de.freese.metamodel.modelgen.naming.DefaultNamingStrategy;
 import de.freese.metamodel.modelgen.naming.NamingStrategy;
 
 /**
- * Konfiguration für die {@link ClassModel}-Erzeugung.
+ * Konfiguration für die Code-Erzeugung.
  *
  * @author Thomas Freese
  */
-public class ModelConfig
+public class Config
 {
     /**
     *
@@ -39,6 +39,11 @@ public class ModelConfig
     /**
     *
     */
+    private Path targetFolder = null;
+
+    /**
+    *
+    */
     private TypeMapping typeMapping = null;
 
     /**
@@ -47,9 +52,9 @@ public class ModelConfig
     private boolean validationAnnotations = false;
 
     /**
-     * Erstellt ein neues {@link ModelConfig} Object.
+     * Erstellt ein neues {@link Config} Object.
      */
-    public ModelConfig()
+    public Config()
     {
         super();
     }
@@ -68,6 +73,16 @@ public class ModelConfig
     public String getPackageName()
     {
         return this.packageName;
+    }
+
+    /**
+     * Verzeichnis in die Klassen generiert werden.<br>
+     *
+     * @return {@link Path}
+     */
+    public Path getTargetFolder()
+    {
+        return this.targetFolder;
     }
 
     /**
@@ -138,6 +153,17 @@ public class ModelConfig
     public void setSerializeable(final boolean serializeable)
     {
         this.serializeable = serializeable;
+    }
+
+    /**
+     * Verzeichnis in die Klassen generiert werden.<br>
+     *
+     * @see #setPackageName(String)
+     * @param targetFolder {@link Path}
+     */
+    public void setTargetFolder(final Path targetFolder)
+    {
+        this.targetFolder = targetFolder;
     }
 
     /**

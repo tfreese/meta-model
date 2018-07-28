@@ -4,27 +4,17 @@
 
 package de.freese.metamodel;
 
-import java.io.PrintWriter;
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import de.freese.metamodel.codegen.CodeWriter;
-import de.freese.metamodel.codegen.JavaCodeWriter;
 import de.freese.metamodel.metagen.MetaExporter;
 import de.freese.metamodel.metagen.model.Schema;
 import de.freese.metamodel.metagen.model.Table;
-import de.freese.metamodel.modelgen.ClassModelGenerator;
-import de.freese.metamodel.modelgen.DefaultClassModelGenerator;
-import de.freese.metamodel.modelgen.ModelConfig;
 import de.freese.metamodel.modelgen.mapping.TypeMapping;
-import de.freese.metamodel.modelgen.model.ClassModel;
 import de.freese.metamodel.modelgen.naming.NamingStrategy;
 
 /**
@@ -33,14 +23,14 @@ import de.freese.metamodel.modelgen.naming.NamingStrategy;
 public class CodeGenerator
 {
     /**
-     *
-     */
-    private ClassModelGenerator classModelGenerator = new DefaultClassModelGenerator();
+    *
+    */
+    private CodeWriter codeWriter = null;
 
     /**
-       *
-       */
-    private CodeWriter codeWriter = null;
+     *
+     */
+    private Config config = new Config();
 
     /**
     *
@@ -53,11 +43,6 @@ public class CodeGenerator
     private MetaExporter metaExporter = null;
 
     /**
-     *
-     */
-    private ModelConfig modelConfig = new ModelConfig();
-
-    /**
     *
     */
     private String schemaName = null;
@@ -66,11 +51,6 @@ public class CodeGenerator
     *
     */
     private String tableNamePattern = null;
-
-    /**
-    *
-    */
-    private Path targetFolder = null;
 
     /**
      * Erstellt ein neues {@link CodeGenerator} Object.
@@ -95,63 +75,14 @@ public class CodeGenerator
 
         Schema schema = this.metaExporter.export(dataSource, this.schemaName, this.tableNamePattern);
 
-        // Erzeugen des ClassModels
-        Objects.requireNonNull(this.modelConfig.getNamingStrategy(), "namingStrategy required");
-        Objects.requireNonNull(this.modelConfig.getPackageName(), "packageName required");
-        Objects.requireNonNull(this.modelConfig.getTypeMapping(), "typeMapping required");
-        Objects.requireNonNull(this.classModelGenerator, "classModelGenerator required");
-
-        List<ClassModel> models = new ArrayList<>();
+        // Code schreiben
+        Objects.requireNonNull(this.config.getTargetFolder(), "targetFolder required");
+        Objects.requireNonNull(this.codeWriter, "codeWriter required");
 
         for (Table table : schema.getTables())
         {
-            ClassModel model = this.classModelGenerator.generate(this.modelConfig, table);
-            models.add(model);
+            this.codeWriter.write(this.config, table);
         }
-
-        // Code schreiben
-        Objects.requireNonNull(this.targetFolder, "targetFolder required");
-        Objects.requireNonNull(this.codeWriter, "codeWriter required");
-
-        String packageDirectory = this.modelConfig.getPackageName().replace(".", "/");
-        Path folder = this.targetFolder.resolve(packageDirectory);
-
-        if (!Files.exists(folder))
-        {
-            Files.createDirectories(folder);
-        }
-
-        for (ClassModel model : models)
-        {
-            Path pathModel = folder.resolve(generateFileName(model));
-
-            try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(pathModel, StandardCharsets.UTF_8)))
-            {
-                this.codeWriter.write(printWriter, model);
-            }
-        }
-    }
-
-    /**
-     * Liefert den Dateinamen des {@link ClassModel}.
-     *
-     * @param model {@link ClassModel}
-     * @return String
-     */
-    protected String generateFileName(final ClassModel model)
-    {
-        String fileName = null;
-
-        if (this.codeWriter instanceof JavaCodeWriter)
-        {
-            fileName = model.getName() + ".java";
-        }
-        else
-        {
-            throw new IllegalStateException("no fileName for unkown CodeWriter: " + this.codeWriter.getClass().getSimpleName());
-        }
-
-        return fileName;
     }
 
     /**
@@ -169,15 +100,7 @@ public class CodeGenerator
      */
     public void setAddFullConstructor(final boolean addFullConstructor)
     {
-        this.modelConfig.setAddFullConstructor(addFullConstructor);
-    }
-
-    /**
-     * @param classModelGenerator {@link ClassModelGenerator}
-     */
-    public void setClassModelGenerator(final ClassModelGenerator classModelGenerator)
-    {
-        this.classModelGenerator = classModelGenerator;
+        this.config.setAddFullConstructor(addFullConstructor);
     }
 
     /**
@@ -201,7 +124,7 @@ public class CodeGenerator
      */
     public void setNamingStrategy(final NamingStrategy namingStrategy)
     {
-        this.modelConfig.setNamingStrategy(namingStrategy);
+        this.config.setNamingStrategy(namingStrategy);
     }
 
     /**
@@ -213,7 +136,7 @@ public class CodeGenerator
      */
     public void setPackageName(final String packageName)
     {
-        this.modelConfig.setPackageName(packageName);
+        this.config.setPackageName(packageName);
     }
 
     /**
@@ -231,7 +154,7 @@ public class CodeGenerator
      */
     public void setSerializeable(final boolean serializeable)
     {
-        this.modelConfig.setSerializeable(serializeable);
+        this.config.setSerializeable(serializeable);
     }
 
     /**
@@ -250,7 +173,7 @@ public class CodeGenerator
      */
     public void setTargetFolder(final Path targetFolder)
     {
-        this.targetFolder = targetFolder;
+        this.config.setTargetFolder(targetFolder);
     }
 
     /**
@@ -258,7 +181,7 @@ public class CodeGenerator
      */
     public void setTypeMapping(final TypeMapping typeMapping)
     {
-        this.modelConfig.setTypeMapping(typeMapping);
+        this.config.setTypeMapping(typeMapping);
     }
 
     /**
@@ -268,6 +191,6 @@ public class CodeGenerator
      */
     public void setValidationAnnotations(final boolean validationAnnotations)
     {
-        this.modelConfig.setValidationAnnotations(validationAnnotations);
+        this.config.setValidationAnnotations(validationAnnotations);
     }
 }

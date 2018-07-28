@@ -47,9 +47,16 @@
 	<dependencies>
 		<!-- compile scope -->
 		<dependency>
+			<groupId>javax.persistence</groupId>
+			<artifactId>javax.persistence-api</artifactId>
+			<version>${version:javax.persistence:persistence-api}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
 			<version>${version:javax.validation:validation-api}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>

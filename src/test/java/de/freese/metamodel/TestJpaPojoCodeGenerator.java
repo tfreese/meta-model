@@ -13,7 +13,7 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import de.freese.metamodel.codegen.JavaCodeWriter;
+import de.freese.metamodel.codegen.JpaCodeWriter;
 import de.freese.metamodel.metagen.HsqldbMetaExporter;
 import de.freese.metamodel.modelgen.mapping.JavaTypeMapping;
 
@@ -21,7 +21,7 @@ import de.freese.metamodel.modelgen.mapping.JavaTypeMapping;
  * @author Thomas Freese
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestJavaPojoCodeGenerator
+public class TestJpaPojoCodeGenerator
 {
     /**
     *
@@ -47,9 +47,9 @@ public class TestJavaPojoCodeGenerator
     }
 
     /**
-     * Erstellt ein neues {@link TestJavaPojoCodeGenerator} Object.
+     * Erstellt ein neues {@link TestJpaPojoCodeGenerator} Object.
      */
-    public TestJavaPojoCodeGenerator()
+    public TestJpaPojoCodeGenerator()
     {
         super();
     }
@@ -63,18 +63,17 @@ public class TestJavaPojoCodeGenerator
         CodeGenerator codeGenerator = new CodeGenerator();
         codeGenerator.setMetaExporter(new HsqldbMetaExporter());
         codeGenerator.setTypeMapping(new JavaTypeMapping());
-        codeGenerator.setCodeWriter(new JavaCodeWriter());
+        codeGenerator.setCodeWriter(new JpaCodeWriter());
         // codeGenerator.setNamingStrategy(new DefaultNamingStrategy());
-        // codeGenerator.setClassModelGenerator(new DefaultClassModelGenerator());
         codeGenerator.setSchemaName("PUBLIC");
         codeGenerator.setTargetFolder(Paths.get("src/test/generated"));
-        codeGenerator.setPackageName("test.pojo");
+        codeGenerator.setPackageName("test.jpa");
         codeGenerator.setSerializeable(true);
-        codeGenerator.setValidationAnnotations(true);
-        codeGenerator.setAddFullConstructor(true);
+        codeGenerator.setValidationAnnotations(false);
+        codeGenerator.setAddFullConstructor(false);
 
         codeGenerator.generate(dataSource);
 
-        Assert.assertTrue(Files.exists(Paths.get("src/test/generated", "test", "pojo")));
+        Assert.assertTrue(Files.exists(Paths.get("src/test/generated", "test", "jpa")));
     }
 }

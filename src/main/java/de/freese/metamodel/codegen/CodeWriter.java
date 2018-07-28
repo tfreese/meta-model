@@ -4,11 +4,11 @@
 
 package de.freese.metamodel.codegen;
 
-import java.io.PrintWriter;
-import de.freese.metamodel.modelgen.model.ClassModel;
+import de.freese.metamodel.Config;
+import de.freese.metamodel.metagen.model.Table;
 
 /**
- * Erzeugt aus dem {@link ClassModel} den Quellcode.
+ * Erzeugt aus den MetaDaten den Quellcode.
  *
  * @author Thomas Freese
  */
@@ -18,9 +18,9 @@ public interface CodeWriter
     /**
      * Schreibt den Code einer Klasse.
      *
-     * @param pw {@link PrintWriter}
-     * @param model {@link ClassModel}
+     * @param config {@link Config}
+     * @param table {@link Table}
      * @throws Exception Falls was schief geht.
      */
-    public void write(PrintWriter pw, ClassModel model) throws Exception;
+    public void write(Config config, Table table) throws Exception;
 }

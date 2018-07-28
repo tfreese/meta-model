@@ -1,5 +1,5 @@
 /**
- * Created: 26.07.2018
+ * Created: 28.07.2018
  */
 
 package de.freese.metamodel.codegen;
@@ -7,15 +7,21 @@ package de.freese.metamodel.codegen;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.lang.annotation.Annotation;
+import java.sql.JDBCType;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import javax.annotation.processing.Generated;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import org.apache.commons.lang3.StringUtils;
+import de.freese.metamodel.Config;
+import de.freese.metamodel.metagen.model.Column;
+import de.freese.metamodel.metagen.model.Table;
 import de.freese.metamodel.modelgen.mapping.Type;
-import de.freese.metamodel.modelgen.model.ClassModel;
-import de.freese.metamodel.modelgen.model.FieldModel;
 
 /**
  * Java-Implementierung eines {@link CodeWriter}.
@@ -33,76 +39,81 @@ public class JavaCodeWriter extends AbstractCodeWriter
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeClassAnnotations(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#getFileExtension()
      */
     @Override
-    protected void writeClassAnnotations(final PrintWriter pw, final ClassModel model) throws IOException
+    protected String getFileExtension()
     {
-        // pw.printf("@Generated(\"%s\")%n", getClass().getName());
-
-        Map<Class<? extends Annotation>, Map<String, Object>> annotations = model.getClassAnnotations();
-
-        annotations.forEach((annotation, values) -> {
-            writeAnnotation(pw, annotation, values);
-        });
+        return ".java";
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeClassEnd(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeClassAnnotations(de.freese.metamodel.Config, java.io.PrintWriter,
+     *      de.freese.metamodel.metagen.model.Table)
      */
     @Override
-    protected void writeClassEnd(final PrintWriter pw, final ClassModel model) throws IOException
+    protected void writeClassAnnotations(final Config config, final PrintWriter pw, final Table table) throws IOException
+    {
+        addImport(Generated.class);
+        pw.printf("@Generated(\"%s\")%n", getClass().getName());
+    }
+
+    /**
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeClassEnd(de.freese.metamodel.Config, java.io.PrintWriter,
+     *      de.freese.metamodel.metagen.model.Table)
+     */
+    @Override
+    protected void writeClassEnd(final Config config, final PrintWriter pw, final Table table) throws IOException
     {
         pw.println("}");
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeClassJavaDoc(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeClassJavaDoc(de.freese.metamodel.Config, java.io.PrintWriter,
+     *      de.freese.metamodel.metagen.model.Table)
      */
     @Override
-    protected void writeClassJavaDoc(final PrintWriter pw, final ClassModel model) throws IOException
+    protected void writeClassJavaDoc(final Config config, final PrintWriter pw, final Table table) throws IOException
     {
         pw.println();
 
         pw.println("/**");
 
-        if (!model.getClassComments().isEmpty())
+        if (StringUtils.isNotBlank(table.getComment()))
         {
-            model.getClassComments().forEach(line -> pw.println(" * " + line + "<br>"));
+            pw.println(" * " + table.getComment() + "<br>");
         }
 
-        pw.printf(" * Pojo für Tabelle %s.%s.%n", model.getTable().getSchema().getName(), model.getTable().getName());
+        pw.printf(" * Pojo für Tabelle %s.%s.%n", table.getSchema().getName(), table.getName());
 
         pw.println("*/");
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeClassStart(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeClassStart(de.freese.metamodel.Config, java.io.PrintWriter,
+     *      de.freese.metamodel.metagen.model.Table)
      */
     @Override
-    protected void writeClassStart(final PrintWriter pw, final ClassModel model) throws IOException
+    protected void writeClassStart(final Config config, final PrintWriter pw, final Table table) throws IOException
     {
-        pw.print("public class " + model.getName());
+        String className = config.getNamingStrategy().getClassName(table.getName());
 
-        List<Class<?>> interfaces = model.getInterfaces();
+        pw.print("public class " + className);
 
-        if (!interfaces.isEmpty())
+        if (config.isSerializeable())
         {
-            pw.print(" implements");
-
-            interfaces.forEach(i -> pw.print(" " + i.getSimpleName()));
-
-            pw.println();
+            addImport(Serializable.class);
+            pw.println(" implements " + Serializable.class.getSimpleName());
         }
 
         pw.println("{");
 
-        if (interfaces.contains(Serializable.class))
+        if (config.isSerializeable())
         {
             // UUID uuid = UUID.randomUUID();
             // long oid = (uuid.getMostSignificantBits() >> 32) ^ uuid.getMostSignificantBits();
             // oid ^= (uuid.getLeastSignificantBits() >> 32) ^ uuid.getLeastSignificantBits();
-            long oid = (model.getPackageName() + "." + model.getName()).hashCode();
+            long oid = (config.getPackageName() + "." + className).hashCode();
 
             pw.println(TAB + "/**");
             pw.println(TAB + " *");
@@ -112,42 +123,51 @@ public class JavaCodeWriter extends AbstractCodeWriter
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeConstructor(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeConstructor(de.freese.metamodel.Config, java.io.PrintWriter,
+     *      de.freese.metamodel.metagen.model.Table)
      */
     @Override
-    protected void writeConstructor(final PrintWriter pw, final ClassModel model) throws IOException
+    protected void writeConstructor(final Config config, final PrintWriter pw, final Table table) throws IOException
     {
+        String className = config.getNamingStrategy().getClassName(table.getName());
+
         pw.println();
         pw.println(TAB + "/**");
         pw.println(TAB + " * Default Constructor");
         pw.println(TAB + " */");
 
-        pw.println(TAB + "public " + model.getName() + "()");
+        pw.println(TAB + "public " + className + "()");
         pw.println(TAB + "{");
         pw.println(TAB + TAB + "super();");
         pw.println(TAB + "}");
 
-        if (model.isAddFullConstructor())
+        if (config.isAddFullConstructor())
         {
             pw.println();
             pw.println(TAB + "/**");
             pw.println(TAB + " * Full Constructor");
             pw.println(TAB + " * ");
 
-            for (FieldModel fieldModel : model.getFields())
+            for (Column column : table.getColumnsOrdered())
             {
-                pw.printf(TAB + " * @param %s %s%n", fieldModel.getName(), fieldModel.getType().getTypeClass().getSimpleName());
+                String fieldName = config.getNamingStrategy().getFieldName(column.getName());
+                Type type = config.getTypeMapping().getType(column.geJdbcType(), column.isNullable());
+
+                pw.printf(TAB + " * @param %s %s%n", fieldName, type.getTypeClass().getSimpleName());
             }
 
             pw.println(TAB + " */");
 
-            pw.print(TAB + "public " + model.getName() + "(");
+            pw.print(TAB + "public " + className + "(");
 
-            for (Iterator<FieldModel> iterator = model.getFields().iterator(); iterator.hasNext();)
+            for (Iterator<Column> iterator = table.getColumnsOrdered().iterator(); iterator.hasNext();)
             {
-                FieldModel fieldModel = iterator.next();
+                Column column = iterator.next();
 
-                pw.print(fieldModel.getType().getTypeClass().getSimpleName() + " " + fieldModel.getName());
+                String fieldName = config.getNamingStrategy().getFieldName(column.getName());
+                Type type = config.getTypeMapping().getType(column.geJdbcType(), column.isNullable());
+
+                pw.print(type.getTypeClass().getSimpleName() + " " + fieldName);
 
                 if (iterator.hasNext())
                 {
@@ -160,15 +180,18 @@ public class JavaCodeWriter extends AbstractCodeWriter
             pw.println(TAB + TAB + "super();");
             pw.println();
 
-            for (FieldModel fieldModel : model.getFields())
+            for (Column column : table.getColumnsOrdered())
             {
-                if (fieldModel.getColumn().isNullable())
+                String fieldName = config.getNamingStrategy().getFieldName(column.getName());
+
+                if (column.isNullable())
                 {
-                    pw.printf(TAB + TAB + "this.%1$s = %1$s;%n", fieldModel.getName());
+                    pw.printf(TAB + TAB + "this.%1$s = %1$s;%n", fieldName);
                 }
                 else
                 {
-                    pw.printf(TAB + TAB + "this.%1$s = Objects.requireNonNull(%1$s, \"not null value: %1$s required\");%n", fieldModel.getName());
+                    addImport(Objects.class);
+                    pw.printf(TAB + TAB + "this.%1$s = Objects.requireNonNull(%1$s, \"not null value: %1$s required\");%n", fieldName);
                 }
             }
 
@@ -177,11 +200,13 @@ public class JavaCodeWriter extends AbstractCodeWriter
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeEquals(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeEquals(de.freese.metamodel.Config, java.io.PrintWriter, de.freese.metamodel.metagen.model.Table)
      */
     @Override
-    protected void writeEquals(final PrintWriter pw, final ClassModel model) throws IOException
+    protected void writeEquals(final Config config, final PrintWriter pw, final Table table) throws IOException
     {
+        String className = config.getNamingStrategy().getClassName(table.getName());
+
         pw.println();
         pw.println(TAB + "/**");
         pw.println(TAB + " * @see java.lang.Object#equals(java.lang.Object)");
@@ -208,30 +233,32 @@ public class JavaCodeWriter extends AbstractCodeWriter
         pw.println(TAB + TAB + "}");
 
         pw.println();
-        pw.printf(TAB + TAB + "%1$s other = (%1$s) obj;%n", model.getName());
+        pw.printf(TAB + TAB + "%1$s other = (%1$s) obj;%n", className);
 
-        for (FieldModel fieldModel : model.getFields())
+        for (Column column : table.getColumnsOrdered())
         {
-            Type type = fieldModel.getType();
+            String fieldName = config.getNamingStrategy().getFieldName(column.getName());
+            Type type = config.getTypeMapping().getType(column.geJdbcType(), column.isNullable());
+
             pw.println();
 
             if (type.getTypeClass().isPrimitive())
             {
-                pw.printf(TAB + TAB + "if (this.%1$s != other.%1$s)%n", fieldModel.getName());
+                pw.printf(TAB + TAB + "if (this.%1$s != other.%1$s)%n", fieldName);
                 pw.println(TAB + TAB + "{");
                 pw.println(TAB + TAB + TAB + "return false;");
                 pw.println(TAB + TAB + "}");
             }
             else
             {
-                pw.println(TAB + TAB + "if (this." + fieldModel.getName() + " == null)");
+                pw.println(TAB + TAB + "if (this." + fieldName + " == null)");
                 pw.println(TAB + TAB + "{");
-                pw.println(TAB + TAB + TAB + "if (other." + fieldModel.getName() + " == null)");
+                pw.println(TAB + TAB + TAB + "if (other." + fieldName + " == null)");
                 pw.println(TAB + TAB + TAB + "{");
                 pw.println(TAB + TAB + TAB + TAB + "return false;");
                 pw.println(TAB + TAB + TAB + "}");
                 pw.println(TAB + TAB + "}");
-                pw.printf(TAB + TAB + "else if(!this.%1$s.equals(other.%1$s))%n", fieldModel.getName());
+                pw.printf(TAB + TAB + "else if(!this.%1$s.equals(other.%1$s))%n", fieldName);
                 pw.println(TAB + TAB + "{");
                 pw.println(TAB + TAB + TAB + "return false;");
                 pw.println(TAB + TAB + "}");
@@ -244,33 +271,44 @@ public class JavaCodeWriter extends AbstractCodeWriter
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeFieldAnnotations(java.io.PrintWriter, de.freese.metamodel.modelgen.model.FieldModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeFieldAnnotations(de.freese.metamodel.Config, java.io.PrintWriter,
+     *      de.freese.metamodel.metagen.model.Column)
      */
     @Override
-    protected void writeFieldAnnotations(final PrintWriter pw, final FieldModel fieldModel) throws IOException
+    protected void writeFieldAnnotations(final Config config, final PrintWriter pw, final Column column) throws IOException
     {
-        Map<Class<? extends Annotation>, Map<String, Object>> annotations = fieldModel.getAnnotations();
+        // Validation Annotations
+        if (config.isValidationAnnotations())
+        {
+            if (!column.isNullable())
+            {
+                // @NotNull
+                addImport(NotNull.class);
+                pw.println(TAB + "@" + NotNull.class.getSimpleName());
+            }
 
-        annotations.forEach((annotation, values) -> {
-            pw.print(TAB);
-            writeAnnotation(pw, annotation, values);
-        });
+            if (JDBCType.VARCHAR.equals(column.geJdbcType()))
+            {
+                // @Size(max=50)
+                addImport(Size.class);
+                pw.println(TAB + "@" + Size.class.getSimpleName() + "(max = " + column.getSize() + ")");
+            }
+        }
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeFieldJavaDoc(java.io.PrintWriter, de.freese.metamodel.modelgen.model.FieldModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeFieldJavaDoc(de.freese.metamodel.Config, java.io.PrintWriter,
+     *      de.freese.metamodel.metagen.model.Column)
      */
     @Override
-    protected void writeFieldJavaDoc(final PrintWriter pw, final FieldModel fieldModel) throws IOException
+    protected void writeFieldJavaDoc(final Config config, final PrintWriter pw, final Column column) throws IOException
     {
         pw.println();
         pw.println(TAB + "/**");
 
-        List<String> comments = fieldModel.getComments();
-
-        if (!comments.isEmpty())
+        if (StringUtils.isNotBlank(column.getComment()))
         {
-            comments.forEach(line -> pw.println(TAB + " * " + line + "<br>"));
+            pw.println(TAB + " * " + column.getComment() + "<br>");
         }
         else
         {
@@ -281,27 +319,29 @@ public class JavaCodeWriter extends AbstractCodeWriter
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeFields(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeFields(de.freese.metamodel.Config, java.io.PrintWriter, de.freese.metamodel.metagen.model.Table)
      */
     @Override
-    protected void writeFields(final PrintWriter pw, final ClassModel model) throws IOException
+    protected void writeFields(final Config config, final PrintWriter pw, final Table table) throws IOException
     {
-        for (FieldModel fieldModel : model.getFields())
+        for (Column column : table.getColumnsOrdered())
         {
-            writeFieldJavaDoc(pw, fieldModel);
-            writeFieldAnnotations(pw, fieldModel);
+            writeFieldJavaDoc(config, pw, column);
+            writeFieldAnnotations(config, pw, column);
 
-            Type type = fieldModel.getType();
+            String fieldName = config.getNamingStrategy().getFieldName(column.getName());
+            Type type = config.getTypeMapping().getType(column.geJdbcType(), column.isNullable());
 
-            pw.printf(TAB + "private %s %s = %s;%n", type.getTypeClass().getSimpleName(), fieldModel.getName(), type.getDefaultValueAsString());
+            pw.printf(TAB + "private %s %s = %s;%n", type.getTypeClass().getSimpleName(), fieldName, type.getDefaultValueAsString());
         }
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeHashcode(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeHashcode(de.freese.metamodel.Config, java.io.PrintWriter,
+     *      de.freese.metamodel.metagen.model.Table)
      */
     @Override
-    protected void writeHashcode(final PrintWriter pw, final ClassModel model) throws IOException
+    protected void writeHashcode(final Config config, final PrintWriter pw, final Table table) throws IOException
     {
         pw.println();
         pw.println(TAB + "/**");
@@ -315,9 +355,11 @@ public class JavaCodeWriter extends AbstractCodeWriter
         pw.println(TAB + TAB + "int result = 1;");
 
         // double vorhanden ?
-        for (FieldModel fieldModel : model.getFields())
+        for (Column column : table.getColumnsOrdered())
         {
-            if (double.class.equals(fieldModel.getType().getTypeClass()))
+            Type type = config.getTypeMapping().getType(column.geJdbcType(), column.isNullable());
+
+            if (double.class.equals(type.getTypeClass()))
             {
                 pw.println(TAB + TAB + "long temp = 0L;");
                 break;
@@ -326,30 +368,31 @@ public class JavaCodeWriter extends AbstractCodeWriter
 
         pw.println();
 
-        for (FieldModel fieldModel : model.getFields())
+        for (Column column : table.getColumnsOrdered())
         {
-            Type type = fieldModel.getType();
+            String fieldName = config.getNamingStrategy().getFieldName(column.getName());
+            Type type = config.getTypeMapping().getType(column.geJdbcType(), column.isNullable());
 
             if (int.class.equals(type.getTypeClass()))
             {
-                pw.println(TAB + TAB + "result = prime * result + this." + fieldModel.getName() + ";");
+                pw.println(TAB + TAB + "result = prime * result + this." + fieldName + ";");
             }
             else if (long.class.equals(type.getTypeClass()))
             {
-                pw.printf(TAB + TAB + "result = prime * result + (int) (this.%1$s ^ (this.%1$s >>> 32));%n", fieldModel.getName());
+                pw.printf(TAB + TAB + "result = prime * result + (int) (this.%1$s ^ (this.%1$s >>> 32));%n", fieldName);
             }
             else if (double.class.equals(type.getTypeClass()))
             {
-                pw.println(TAB + TAB + "temp = Double.doubleToLongBits(this." + fieldModel.getName() + ");");
+                pw.println(TAB + TAB + "temp = Double.doubleToLongBits(this." + fieldName + ");");
                 pw.println(TAB + TAB + "result = prime * result + (int) (temp ^ (temp >>> 32));");
             }
             else if (float.class.equals(type.getTypeClass()))
             {
-                pw.println(TAB + TAB + "result = prime * result + Float.floatToIntBits(this." + fieldModel.getName() + ");");
+                pw.println(TAB + TAB + "result = prime * result + Float.floatToIntBits(this." + fieldName + ");");
             }
             else
             {
-                pw.printf(TAB + TAB + "result = prime * result + ((this.%1$s == null) ? 0 : this.%1$s.hashCode());%n", fieldModel.getName());
+                pw.printf(TAB + TAB + "result = prime * result + ((this.%1$s == null) ? 0 : this.%1$s.hashCode());%n", fieldName);
             }
         }
 
@@ -359,15 +402,16 @@ public class JavaCodeWriter extends AbstractCodeWriter
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeImports(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeImports(de.freese.metamodel.Config, java.io.PrintWriter,
+     *      de.freese.metamodel.metagen.model.Table)
      */
     @Override
-    protected void writeImports(final PrintWriter pw, final ClassModel model) throws IOException
+    protected void writeImports(final Config config, final PrintWriter pw, final Table table) throws IOException
     {
         pw.println();
 
         // @formatter:off
-        model.getImports().stream()
+        getImports().stream()
             .filter(i -> !i.toLowerCase().startsWith("long"))
             .filter(i -> !i.toLowerCase().startsWith("byte[]"))
             .filter(i -> !i.toLowerCase().startsWith("boolean"))
@@ -383,15 +427,18 @@ public class JavaCodeWriter extends AbstractCodeWriter
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeMethods(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeMethods(de.freese.metamodel.Config, java.io.PrintWriter,
+     *      de.freese.metamodel.metagen.model.Table)
      */
     @Override
-    protected void writeMethods(final PrintWriter pw, final ClassModel model) throws IOException
+    protected void writeMethods(final Config config, final PrintWriter pw, final Table table) throws IOException
     {
-        for (FieldModel fieldModel : model.getFields())
+        for (Column column : table.getColumnsOrdered())
         {
-            String fieldName = fieldModel.getName();
-            String typeSimpleName = fieldModel.getType().getTypeClass().getSimpleName();
+            String fieldName = config.getNamingStrategy().getFieldName(column.getName());
+            Type type = config.getTypeMapping().getType(column.geJdbcType(), column.isNullable());
+
+            String typeSimpleName = type.getTypeClass().getSimpleName();
 
             // Setter
             pw.println();
@@ -401,14 +448,14 @@ public class JavaCodeWriter extends AbstractCodeWriter
             pw.println(TAB + "public void set" + StringUtils.capitalize(fieldName) + "(" + typeSimpleName + " " + fieldName + ")");
             pw.println(TAB + "{");
 
-            if (fieldModel.getColumn().isNullable())
+            // if (fieldModel.getColumn().isNullable())
             {
                 pw.printf(TAB + TAB + "this.%1$s = %1$s;%n", fieldName);
             }
-            else
-            {
-                pw.printf(TAB + TAB + "this.%1$s = Objects.requireNonNull(%1$s, \"not null value: %1$s required\");%n", fieldName);
-            }
+            // else
+            // {
+            // pw.printf(TAB + TAB + "this.%1$s = Objects.requireNonNull(%1$s, \"not null value: %1$s required\");%n", fieldName);
+            // }
 
             pw.println(TAB + "}");
 
@@ -425,41 +472,56 @@ public class JavaCodeWriter extends AbstractCodeWriter
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writePackage(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writePackage(de.freese.metamodel.Config, java.io.PrintWriter,
+     *      de.freese.metamodel.metagen.model.Table)
      */
     @Override
-    protected void writePackage(final PrintWriter pw, final ClassModel model) throws IOException
+    protected void writePackage(final Config config, final PrintWriter pw, final Table table) throws IOException
     {
         pw.printf("// Created: %1$tY-%1$tm-%1$td %1$tH.%1$tM.%1$tS,%1$tL%n", new Date());
-        pw.printf("package %s;%n", model.getPackageName());
+        pw.printf("package %s;%n", config.getPackageName());
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeToString(java.io.PrintWriter, de.freese.metamodel.modelgen.model.ClassModel)
+     * @see de.freese.metamodel.codegen.AbstractCodeWriter#writeToString(de.freese.metamodel.Config, java.io.PrintWriter,
+     *      de.freese.metamodel.metagen.model.Table)
      */
     @Override
-    protected void writeToString(final PrintWriter pw, final ClassModel model) throws IOException
+    protected void writeToString(final Config config, final PrintWriter pw, final Table table) throws IOException
     {
-        // Finde alle Attribute des PrimaryKeys.
-        List<FieldModel> fields = model.getPrimaryKeyFields();
+        // Finde alle Columns des PrimaryKeys.
+        List<Column> columns = table.getPrimaryKey().getColumnsOrdered();
 
-        if (fields.isEmpty())
+        if (columns.isEmpty())
         {
-            // Finde alle Attribute mit UniqueConstraints.
-            fields = model.getUniqueConstraintFields();
+            // Finde alle Columns mit UniqueConstraints.
+            // @formatter:off
+            columns = table.getUniqueConstraints().stream()
+                    .flatMap(uc -> uc.getColumnsOrdered().stream())
+                    .sorted(Comparator.comparing(Column::getTableIndex))
+                    .collect(Collectors.toList());
+            // @formatter:on
         }
 
-        if (fields.isEmpty())
+        if (columns.isEmpty())
         {
-            // Finde alle Attribute mit ForeignKeys.
-            fields = model.getForeignKeyFields();
+            // Finde alle Columns mit ForeignKeys.
+            // @formatter:off
+            columns = table.getColumnsOrdered().stream()
+                    .filter(c -> c.getForeignKey() != null)
+                    .map(c -> c.getForeignKey().getColumn())
+                    .sorted(Comparator.comparing(Column::getTableIndex))
+                    .collect(Collectors.toList());
+            // @formatter:on
         }
 
-        if (fields.isEmpty())
+        if (columns.isEmpty())
         {
-            // Alle Attribute.
-            fields = model.getFields();
+            // Alle Columns.
+            columns = table.getColumnsOrdered();
         }
+
+        String className = config.getNamingStrategy().getClassName(table.getName());
 
         pw.println();
         pw.println(TAB + "/**");
@@ -470,12 +532,15 @@ public class JavaCodeWriter extends AbstractCodeWriter
         pw.println(TAB + "{");
 
         pw.println(TAB + TAB + "StringBuilder sb = new StringBuilder();");
-        pw.println(TAB + TAB + "sb.append(\"" + model.getName() + " [\");");
+        pw.println(TAB + TAB + "sb.append(\"" + className + " [\");");
 
-        for (Iterator<FieldModel> iterator = fields.iterator(); iterator.hasNext();)
+        for (Iterator<Column> iterator = columns.iterator(); iterator.hasNext();)
         {
-            FieldModel fieldModel = iterator.next();
-            pw.printf(TAB + TAB + "sb.append(\"%1$s = \").append(this.%1$s)", fieldModel.getName());
+            Column column = iterator.next();
+
+            String fieldName = config.getNamingStrategy().getFieldName(column.getName());
+
+            pw.printf(TAB + TAB + "sb.append(\"%1$s = \").append(this.%1$s)", fieldName);
 
             if (iterator.hasNext())
             {
