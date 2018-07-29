@@ -1,29 +1,44 @@
 /**
- * Created: 28.07.2018
+ * Created: 29.07.2018
  */
 
 package de.freese.metamodel.codegen;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
-import javax.persistence.Access;
-import javax.persistence.AccessType;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.persistence.Cacheable;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedNativeQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
 import org.apache.commons.lang3.StringUtils;
 import de.freese.metamodel.Config;
 import de.freese.metamodel.metagen.model.Column;
+import de.freese.metamodel.metagen.model.ForeignKey;
+import de.freese.metamodel.metagen.model.Sequence;
 import de.freese.metamodel.metagen.model.Table;
 import de.freese.metamodel.metagen.model.UniqueConstraint;
+import de.freese.metamodel.modelgen.ClassModel;
+import de.freese.metamodel.modelgen.FieldModel;
+import de.freese.metamodel.modelgen.mapping.AssoziationType;
+import de.freese.metamodel.modelgen.mapping.Type;
 
 /**
  * Java-Implementierung für JPA-Entities eines {@link CodeWriter}.
  *
  * @author Thomas Freese
  */
-public class JpaCodeWriter extends JavaCodeWriter
+public class JpaCodeWriter extends PojoCodeWriter
 {
     /**
      * Erstellt ein neues {@link JpaCodeWriter} Object.
@@ -34,98 +49,236 @@ public class JpaCodeWriter extends JavaCodeWriter
     }
 
     /**
-     * @see de.freese.metamodel.codegen.JavaCodeWriter#writeClassAnnotations(de.freese.metamodel.Config, java.io.PrintWriter,
-     *      de.freese.metamodel.metagen.model.Table)
+     * @see de.freese.metamodel.codegen.PojoCodeWriter#createClassAnnotations(de.freese.metamodel.Config, de.freese.metamodel.modelgen.ClassModel)
      */
     @Override
-    protected void writeClassAnnotations(final Config config, final PrintWriter pw, final Table table) throws IOException
+    protected void createClassAnnotations(final Config config, final ClassModel classModel)
     {
-        addImport(Entity.class);
-        pw.println("@Entity");
+        Table table = classModel.getTable();
 
-        addImport(javax.persistence.Table.class);
-        pw.print("@Table(");
-        pw.printf("name = \"%s\"", table.getName());
-        pw.printf(", schema = \"%s\"", table.getSchema().getName());
+        // Entity
+        classModel.addImport(Entity.class);
+        classModel.addAnnotation("@Entity");
+
+        // Table
+        classModel.addImport(javax.persistence.Table.class);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("@Table(");
+        sb.append("name = \"").append(table.getName()).append("\"");
+        sb.append(", schema = \"").append(table.getSchema().getName()).append("\"");
 
         if (!table.getUniqueConstraints().isEmpty())
         {
-            pw.println();
-
-            addImport(javax.persistence.UniqueConstraint.class);
-            pw.println(TAB + ", uniqueConstraints = {");
+            classModel.addImport(javax.persistence.UniqueConstraint.class);
+            sb.append(", uniqueConstraints = {");
 
             for (UniqueConstraint uc : table.getUniqueConstraints())
             {
-                pw.print(TAB + TAB + "@UniqueConstraint(name = \"" + uc.getName() + "\", columnNames = {");
+                sb.append("@UniqueConstraint(name = \"").append(uc.getName()).append("\", columnNames = {");
 
                 for (Iterator<Column> iterator = uc.getColumnsOrdered().iterator(); iterator.hasNext();)
                 {
-                    pw.print("\"" + iterator.next().getName() + "\"");
+                    sb.append("\"").append(iterator.next().getName()).append("\"");
 
                     if (iterator.hasNext())
                     {
-                        pw.print(", ");
+                        sb.append(", ");
                     }
                 }
 
-                pw.println("})");
+                sb.append("})");
             }
 
-            pw.println(TAB + "}");
+            sb.append("}");
         }
 
-        pw.println(")");
+        sb.append(")");
+        classModel.addAnnotation(sb.toString());
 
-        addImport(NamedNativeQuery.class);
-        String className = config.getNamingStrategy().getClassName(table.getName());
-        String alias = className.substring(0, 1).toLowerCase();
+        // Cacheable
+        classModel.addImport(Cacheable.class);
+        classModel.addAnnotation("@Cacheable");
 
-        pw.printf("@NamedNativeQuery(name = \"all%s.native\"", StringUtils.capitalize(className));
-        pw.printf(", query = \"select %2$s.* from %1$s %2$s\")%n", table.getName(), alias);
+        // NamedNativeQuery
+        classModel.addImport(NamedNativeQuery.class);
+        String alias = classModel.getName().substring(0, 1).toLowerCase();
 
-        super.writeClassAnnotations(config, pw, table);
+        sb = new StringBuilder();
+        sb.append("@NamedNativeQuery(name = \"all").append(StringUtils.capitalize(classModel.getName())).append(".native\"");
+        sb.append(", query = ").append(String.format("\"select %2$s.* from %1$s %2$s\")", table.getName(), alias));
+        classModel.addAnnotation(sb.toString());
+
+        super.createClassAnnotations(config, classModel);
     }
 
     /**
-     * @see de.freese.metamodel.codegen.JavaCodeWriter#writeFieldAnnotations(de.freese.metamodel.Config, java.io.PrintWriter,
-     *      de.freese.metamodel.metagen.model.Column)
+     * @see de.freese.metamodel.codegen.PojoCodeWriter#createFieldAnnotations(de.freese.metamodel.Config, de.freese.metamodel.modelgen.FieldModel)
      */
     @Override
-    protected void writeFieldAnnotations(final Config config, final PrintWriter pw, final Column column) throws IOException
+    protected void createFieldAnnotations(final Config config, final FieldModel fieldModel)
     {
-        // ID
-        if (column.getTable().getPrimaryKey().getColumnsOrdered().contains(column))
+        if (fieldModel.getType().isAssoziation())
         {
-            addImport(Id.class);
-            pw.println(TAB + "@Id");
+            return;
+        }
+
+        ClassModel classModel = fieldModel.getClassModel();
+        Column column = fieldModel.getColumn();
+
+        // ID
+        if (column.isPrimaryKey())
+        {
+            classModel.addImport(Id.class);
+            fieldModel.addAnnotation("@Id");
         }
 
         // TODO Composite PrimaryKeys !
 
         // Column
-        addImport(javax.persistence.Column.class);
-        pw.print(TAB + "@Column(");
-        pw.print("name = \"" + column.getName() + "\"");
-        pw.print(", nullable = " + column.isNullable());
+        classModel.addImport(javax.persistence.Column.class);
 
-        if (column.getTable().getPrimaryKey().getColumnsOrdered().contains(column))
+        StringBuilder sb = new StringBuilder();
+        sb.append("@Column(");
+        sb.append("name = \"").append(column.getName()).append("\"");
+        sb.append(", nullable = ").append(column.isNullable());
+
+        if (column.isPrimaryKey())
         {
-            pw.print(", unique = true");
+            sb.append(", unique = true");
         }
 
         if (column.hasSize())
         {
-            pw.print(", length = " + column.getSize());
+            sb.append(", length = ").append(column.getSize());
         }
 
-        pw.println(")");
+        sb.append(")");
+        fieldModel.addAnnotation(sb.toString());
+
+        // Versuchen Sequence für Entity zu finden.
+        if (column.isPrimaryKey())
+        {
+            // @formatter:off
+           List<Sequence> sequences = column.getTable().getSchema().getSequences().stream()
+                .filter(seq -> seq.getName().toLowerCase().contains(classModel.getName().toLowerCase()))
+                .sorted(Comparator.comparing(seq -> seq.getName().length()))
+                .collect(Collectors.toList());
+            // @formatter:on
+
+            Sequence sequence = null;
+
+            if (!sequences.isEmpty())
+            {
+                // Wir nehmen die Sequence mit dem kürzesten Namen.
+                sequence = sequences.get(0);
+            }
+
+            if (sequence != null)
+            {
+                classModel.addImport(SequenceGenerator.class);
+                classModel.addImport(GeneratedValue.class);
+                classModel.addImport(GenerationType.class);
+
+                String generatorName = sequence.getName().toLowerCase() + "_gen";
+
+                fieldModel.addAnnotation("@SequenceGenerator(name = \"" + generatorName + "\", sequenceName = \"" + sequence.getName() + "\")");
+                fieldModel.addAnnotation("@GeneratedValue(generator = \"" + generatorName + "\", strategy = GenerationType.SEQUENCE)");
+            }
+        }
 
         // Access
-        addImport(Access.class);
-        addImport(AccessType.class);
-        pw.println(TAB + "@Access(AccessType.FIELD)");
+        // classModel.addImport(Access.class);
+        // classModel.addImport(AccessType.class);
+        // fieldModel.addAnnotation("@Access(AccessType.FIELD)");
 
-        super.writeFieldAnnotations(config, pw, column);
+        super.createFieldAnnotations(config, fieldModel);
+    }
+
+    /**
+     * @see de.freese.metamodel.codegen.PojoCodeWriter#createFields(de.freese.metamodel.Config, de.freese.metamodel.modelgen.ClassModel)
+     */
+    @Override
+    protected void createFields(final Config config, final ClassModel classModel)
+    {
+        for (Column column : classModel.getTable().getColumnsOrdered())
+        {
+            ForeignKey fk = column.getForeignKey();
+            List<Column> reverseFKs = column.getReverseForeignKeys();
+
+            if (column.isPrimaryKey() || (reverseFKs.isEmpty() && (fk == null)))
+            {
+                // Normales Attribut
+                FieldModel fieldModel = new FieldModel(classModel, column);
+
+                String fieldName = config.getNamingStrategy().getFieldName(column.getName());
+                Type type = config.getTypeMapping().getType(column.getJdbcType(), column.isNullable());
+
+                fieldModel.setName(fieldName);
+                fieldModel.setType(type);
+
+                createFieldComments(config, fieldModel);
+                createFieldAnnotations(config, fieldModel);
+            }
+
+            if (fk != null)
+            {
+                // Anderes Objekt.
+                String refClassName = config.getNamingStrategy().getClassName(fk.getRefColumn().getTable().getName());
+
+                FieldModel fieldModel = new FieldModel(classModel, fk.getRefColumn());
+                fieldModel.setName(refClassName.toLowerCase());
+                fieldModel.setType(new AssoziationType(refClassName, "null"));
+
+                classModel.addImport(ManyToOne.class);
+                classModel.addImport(FetchType.class);
+                classModel.addImport(JoinColumn.class);
+                classModel.addImport(javax.persistence.ForeignKey.class);
+
+                fieldModel.addAnnotation("@ManyToOne(fetch = FetchType.LAZY)");
+
+                StringBuilder sb = new StringBuilder();
+                sb.append("@JoinColumn(name = \"").append(column.getName()).append("\"");
+                sb.append(", foreignKey = @ForeignKey(name = \"").append(fk.getName()).append("\")");
+                sb.append(", nullable = false)");
+                fieldModel.addAnnotation(sb.toString());
+
+                createFieldComments(config, fieldModel);
+                createFieldAnnotations(config, fieldModel);
+            }
+
+            if (!reverseFKs.isEmpty())
+            {
+                // 1:n Childs
+                for (Column reverseFK : reverseFKs)
+                {
+                    String refClassName = config.getNamingStrategy().getClassName(reverseFK.getTable().getName());
+
+                    FieldModel fieldModel = new FieldModel(classModel, reverseFK);
+                    fieldModel.setName(refClassName.toLowerCase() + "es");
+
+                    AssoziationType type = new AssoziationType("List<" + refClassName + ">", "new ArrayList<>()");
+                    type.setCollection(true);
+                    fieldModel.setType(type);
+
+                    classModel.addImport(List.class);
+                    classModel.addImport(ArrayList.class);
+                    classModel.addImport(OneToMany.class);
+                    classModel.addImport(FetchType.class);
+                    classModel.addImport(CascadeType.class);
+
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("@OneToMany(mappedBy = \"").append(classModel.getName().toLowerCase());
+                    sb.append("\", fetch = FetchType.LAZY, orphanRemoval = true, cascade =");
+                    sb.append("{CascadeType.ALL}");
+                    sb.append(")");
+
+                    fieldModel.addAnnotation(sb.toString());
+
+                    createFieldComments(config, fieldModel);
+                    createFieldAnnotations(config, fieldModel);
+                }
+            }
+        }
     }
 }

@@ -300,6 +300,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
         {
             DatabaseMetaData dbmd = connection.getMetaData();
 
+            // ForeignKeys von dieser Tabelle.
             try (ResultSet resultSet = dbmd.getImportedKeys(table.getSchema().getName(), table.getSchema().getName(), table.getName()))
             {
                 while (resultSet.next())
@@ -307,6 +308,15 @@ public abstract class AbstractMetaExporter implements MetaExporter
                     createForeignKey(table, resultSet);
                 }
             }
+
+            // ForeignKeys auf diese Tabelle.
+            // try (ResultSet resultSet = dbmd.getExportedKeys(table.getSchema().getName(), table.getSchema().getName(), table.getName()))
+            // {
+            // while (resultSet.next())
+            // {
+            // createForeignKey(table, resultSet);
+            // }
+            // }
         }
     }
 

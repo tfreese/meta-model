@@ -6,6 +6,8 @@ package de.freese.metamodel.metagen.model;
 
 import java.sql.JDBCType;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,6 +47,11 @@ public class Column
     *
     */
     private boolean nullable = false;
+
+    /**
+     * Columns anderer Tabellen, die auf diese Column zeigen.
+     */
+    private final List<Column> reverseForeignKeys = new ArrayList<>();
 
     /**
     *
@@ -94,9 +101,19 @@ public class Column
     }
 
     /**
+     * Hinzufügen einer Column einer anderer Tabelle, die auf diese Column Zeigt.
+     *
+     * @param column {@link Column}
+     */
+    void addReverseForeignKey(final Column column)
+    {
+        this.reverseForeignKeys.add(column);
+    }
+
+    /**
      * @return {@link JDBCType}
      */
-    public JDBCType geJdbcType()
+    public JDBCType getJdbcType()
     {
         return JDBCType.valueOf(getSqlType());
     }
@@ -131,6 +148,16 @@ public class Column
     public String getName()
     {
         return this.name;
+    }
+
+    /**
+     * Columns anderer Tabellen, die auf diese Column zeigen.
+     *
+     * @return {@link List}
+     */
+    public List<Column> getReverseForeignKeys()
+    {
+        return new ArrayList<>(this.reverseForeignKeys);
     }
 
     /**
@@ -199,6 +226,23 @@ public class Column
     }
 
     /**
+     * Liefert true, wenn die Column zu den PrimaryKey-Columns gehört.
+     *
+     * @return boolean
+     */
+    public boolean isPrimaryKey()
+    {
+        PrimaryKey pk = getTable().getPrimaryKey();
+
+        if (pk == null)
+        {
+            return false;
+        }
+
+        return pk.getColumnsOrdered().contains(this);
+    }
+
+    /**
      * @param comment String
      */
     public void setComment(final String comment)
@@ -220,6 +264,8 @@ public class Column
     public void setForeignKey(final ForeignKey foreignKey)
     {
         this.foreignKey = foreignKey;
+
+        this.foreignKey.getRefColumn().addReverseForeignKey(this);
     }
 
     /**

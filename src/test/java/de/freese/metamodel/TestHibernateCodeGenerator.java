@@ -13,7 +13,7 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import de.freese.metamodel.codegen.PojoCodeWriter;
+import de.freese.metamodel.codegen.HibernateCodeWriter;
 import de.freese.metamodel.metagen.HsqldbMetaExporter;
 import de.freese.metamodel.modelgen.mapping.JavaTypeMapping;
 
@@ -21,7 +21,7 @@ import de.freese.metamodel.modelgen.mapping.JavaTypeMapping;
  * @author Thomas Freese
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestPojoCodeGenerator
+public class TestHibernateCodeGenerator
 {
     /**
     *
@@ -47,9 +47,9 @@ public class TestPojoCodeGenerator
     }
 
     /**
-     * Erstellt ein neues {@link TestPojoCodeGenerator} Object.
+     * Erstellt ein neues {@link TestHibernateCodeGenerator} Object.
      */
-    public TestPojoCodeGenerator()
+    public TestHibernateCodeGenerator()
     {
         super();
     }
@@ -63,17 +63,17 @@ public class TestPojoCodeGenerator
         CodeGenerator codeGenerator = new CodeGenerator();
         codeGenerator.setMetaExporter(new HsqldbMetaExporter());
         codeGenerator.setTypeMapping(new JavaTypeMapping());
-        codeGenerator.setCodeWriter(new PojoCodeWriter());
+        codeGenerator.setCodeWriter(new HibernateCodeWriter());
         // codeGenerator.setNamingStrategy(new DefaultNamingStrategy());
         codeGenerator.setSchemaName("PUBLIC");
         codeGenerator.setTargetFolder(Paths.get("src/test/generated"));
-        codeGenerator.setPackageName("test.pojo");
+        codeGenerator.setPackageName("test.hibernate");
         codeGenerator.setSerializeable(true);
-        codeGenerator.setValidationAnnotations(true);
-        codeGenerator.setAddFullConstructor(true);
+        codeGenerator.setValidationAnnotations(false);
+        codeGenerator.setAddFullConstructor(false);
 
         codeGenerator.generate(dataSource);
 
-        Assert.assertTrue(Files.exists(Paths.get("src/test/generated", "test", "pojo")));
+        Assert.assertTrue(Files.exists(Paths.get("src/test/generated", "test", "hibernate")));
     }
 }

@@ -133,14 +133,14 @@ public class PrintDatabaseMetaData
     {
         DatabaseMetaData dbmd = connection.getMetaData();
 
-        // ForeignKeys von Tabelle auf andere.
+        // ForeignKeys von dieser Tabelle.
         try (ResultSet foreignKeys = dbmd.getImportedKeys(schema, schema, tableName))
         {
             System.out.printf("%n%s: ForeignKeys-ImportedKeys%n", tableName);
             write(foreignKeys, System.out);
         }
 
-        // ForeignKeys von andere auf Tabelle.
+        // ForeignKeys auf diese Tabelle.
         try (ResultSet refForeignKeys = dbmd.getExportedKeys(schema, schema, tableName))
         {
             System.out.printf("%n%s: ForeignKeys-ExportedKeys%n", tableName);

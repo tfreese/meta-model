@@ -4,50 +4,49 @@
 
 package de.freese.metamodel.modelgen.mapping;
 
-import java.util.Objects;
-
 /**
  * @author Thomas Freese
  */
-public class Type
+public interface Type
 {
     /**
-     *
+     * @param clazz {@link Class}
+     * @return boolean
      */
-    private final String defaultValueAsString;
-
-    /**
-     *
-     */
-    private final Class<?> typeClass;
-
-    /**
-     * Erstellt ein neues {@link Type} Object.
-     *
-     * @param typeClass {@link Class}
-     * @param defaultValueAsString String
-     */
-    public Type(final Class<?> typeClass, final String defaultValueAsString)
-    {
-        super();
-
-        this.typeClass = Objects.requireNonNull(typeClass, "typeClass required");
-        this.defaultValueAsString = Objects.requireNonNull(defaultValueAsString, "defaultValueAsString required");
-    }
+    public boolean equals(Class<?> clazz);
 
     /**
      * @return String
      */
-    public String getDefaultValueAsString()
-    {
-        return this.defaultValueAsString;
-    }
+    public String getDefaultValueAsString();
+
+    // /**
+    // * @return Class<?>
+    // */
+    // public Class<?> getJavaClass();
 
     /**
-     * @return Class<?>
+     * @return String
      */
-    public Class<?> getTypeClass()
-    {
-        return this.typeClass;
-    }
+    public String getSimpleName();
+
+    /**
+     * @return boolean
+     */
+    public boolean isArray();
+
+    /**
+     * @return boolean
+     */
+    public boolean isAssoziation();
+
+    /**
+     * @return boolean
+     */
+    public boolean isCollection();
+
+    /**
+     * @return boolean
+     */
+    public boolean isPrimitive();
 }

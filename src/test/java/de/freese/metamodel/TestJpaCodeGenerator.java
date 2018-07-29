@@ -21,7 +21,7 @@ import de.freese.metamodel.modelgen.mapping.JavaTypeMapping;
  * @author Thomas Freese
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestJpaPojoCodeGenerator
+public class TestJpaCodeGenerator
 {
     /**
     *
@@ -47,9 +47,9 @@ public class TestJpaPojoCodeGenerator
     }
 
     /**
-     * Erstellt ein neues {@link TestJpaPojoCodeGenerator} Object.
+     * Erstellt ein neues {@link TestJpaCodeGenerator} Object.
      */
-    public TestJpaPojoCodeGenerator()
+    public TestJpaCodeGenerator()
     {
         super();
     }
