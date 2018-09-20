@@ -49,7 +49,7 @@
 		<dependency>
 			<groupId>javax.persistence</groupId>
 			<artifactId>javax.persistence-api</artifactId>
-			<version>${version:javax.persistence:persistence-api}</version>
+			<version>${version:javax.persistence:javax.persistence-api}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
