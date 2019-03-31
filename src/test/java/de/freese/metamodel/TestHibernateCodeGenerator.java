@@ -4,15 +4,15 @@
 
 package de.freese.metamodel;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import javax.sql.DataSource;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import de.freese.metamodel.codegen.HibernateCodeWriter;
 import de.freese.metamodel.metagen.HsqldbMetaExporter;
 import de.freese.metamodel.modelgen.mapping.JavaTypeMapping;
@@ -20,7 +20,7 @@ import de.freese.metamodel.modelgen.mapping.JavaTypeMapping;
 /**
  * @author Thomas Freese
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.Alphanumeric.class)
 public class TestHibernateCodeGenerator
 {
     /**
@@ -31,8 +31,8 @@ public class TestHibernateCodeGenerator
     /**
      * @throws Exception Falls was schief geht.
      */
-    @AfterClass
-    public static void afterClass() throws Exception
+    @AfterAll
+    public static void afterAll() throws Exception
     {
         TestUtil.closeDataSource(dataSource);
     }
@@ -40,8 +40,8 @@ public class TestHibernateCodeGenerator
     /**
     *
     */
-    @BeforeClass
-    public static void beforeClass()
+    @BeforeAll
+    public static void beforeAll()
     {
         dataSource = TestUtil.createHsqlDBDataSource("jdbc:hsqldb:res:hsqldb/person;create=false;readonly=true");
     }
@@ -74,6 +74,6 @@ public class TestHibernateCodeGenerator
 
         codeGenerator.generate(dataSource);
 
-        Assert.assertTrue(Files.exists(Paths.get("src/test/generated", "test", "hibernate")));
+        assertTrue(Files.exists(Paths.get("src/test/generated", "test", "hibernate")));
     }
 }

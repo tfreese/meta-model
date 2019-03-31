@@ -41,7 +41,7 @@ public final class TestUtil
             return;
         }
 
-        String sep = separator == null || separator.trim().isEmpty() ? "-" : separator;
+        String sep = (separator == null) || separator.trim().isEmpty() ? "-" : separator;
 
         int columnCount = rows.get(0).length;
 
@@ -185,7 +185,7 @@ public final class TestUtil
         // @formatter:on
 
         // Strings pro Spalte formatieren und schreiben.
-        String pad = padding == null || padding.trim().isEmpty() ? " " : padding;
+        String pad = (padding == null) || padding.trim().isEmpty() ? " " : padding;
 
         rows.stream().parallel().forEach(r -> {
             for (int column = 0; column < columnCount; column++)
@@ -256,7 +256,22 @@ public final class TestUtil
             for (int column = 1; column <= columnCount; column++)
             {
                 Object obj = resultSet.getObject(column);
-                row[column - 1] = (obj == null) ? "" : obj.toString();
+                String value = null;
+
+                if (obj == null)
+                {
+                    value = "";
+                }
+                else if (obj instanceof byte[])
+                {
+                    value = new String((byte[]) obj);
+                }
+                else
+                {
+                    value = obj.toString();
+                }
+
+                row[column - 1] = value;
             }
         }
 

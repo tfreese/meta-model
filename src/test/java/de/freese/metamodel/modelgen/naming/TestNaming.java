@@ -4,17 +4,17 @@
 
 package de.freese.metamodel.modelgen.naming;
 
-import org.junit.Assert;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 /**
  * TestCase für die Namenskonvertierung.
  *
  * @author Thomas Freese
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.Alphanumeric.class)
 public class TestNaming
 {
     /**
@@ -33,12 +33,12 @@ public class TestNaming
     {
         NamingStrategy namingStrategy = new DefaultNamingStrategy();
 
-        Assert.assertEquals("Test", namingStrategy.getClassName("Test"));
-        Assert.assertEquals("Test", namingStrategy.getClassName("TEST"));
-        Assert.assertEquals("Test", namingStrategy.getClassName("T_Test"));
-        Assert.assertEquals("Test", namingStrategy.getClassName("T_TEST"));
-        Assert.assertEquals("TestTest", namingStrategy.getClassName("Test_Test"));
-        Assert.assertEquals("TestTest", namingStrategy.getClassName("TEST_TEST"));
+        assertEquals("Test", namingStrategy.getClassName("Test"));
+        assertEquals("Test", namingStrategy.getClassName("TEST"));
+        assertEquals("Test", namingStrategy.getClassName("T_Test"));
+        assertEquals("Test", namingStrategy.getClassName("T_TEST"));
+        assertEquals("TestTest", namingStrategy.getClassName("Test_Test"));
+        assertEquals("TestTest", namingStrategy.getClassName("TEST_TEST"));
     }
 
     /**
@@ -49,11 +49,11 @@ public class TestNaming
     {
         NamingStrategy namingStrategy = new DefaultNamingStrategy();
 
-        Assert.assertEquals("test", namingStrategy.getFieldName("Test"));
-        Assert.assertEquals("test", namingStrategy.getFieldName("TEST"));
-        Assert.assertEquals("test", namingStrategy.getFieldName("T_Test"));
-        Assert.assertEquals("test", namingStrategy.getFieldName("T_TEST"));
-        Assert.assertEquals("testTest", namingStrategy.getFieldName("Test_Test"));
-        Assert.assertEquals("testTest", namingStrategy.getFieldName("TEST_TEST"));
+        assertEquals("test", namingStrategy.getFieldName("Test"));
+        assertEquals("test", namingStrategy.getFieldName("TEST"));
+        assertEquals("test", namingStrategy.getFieldName("T_Test"));
+        assertEquals("test", namingStrategy.getFieldName("T_TEST"));
+        assertEquals("testTest", namingStrategy.getFieldName("Test_Test"));
+        assertEquals("testTest", namingStrategy.getFieldName("TEST_TEST"));
     }
 }
