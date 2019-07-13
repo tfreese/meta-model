@@ -4,14 +4,6 @@
 
 package de.freese.metamodel;
 
-import oracle.jdbc.pool.OracleDataSource;
-import org.apache.commons.lang3.StringUtils;
-import org.hsqldb.jdbc.JDBCPool;
-import org.mariadb.jdbc.MariaDbPoolDataSource;
-import org.sqlite.SQLiteConfig;
-import org.sqlite.SQLiteDataSource;
-import org.sqlite.javax.SQLiteConnectionPoolDataSource;
-
 import java.io.Closeable;
 import java.io.PrintStream;
 import java.sql.ResultSet;
@@ -21,8 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
-
 import javax.sql.DataSource;
+import org.apache.commons.lang3.StringUtils;
+import org.hsqldb.jdbc.JDBCPool;
+import org.mariadb.jdbc.MariaDbPoolDataSource;
+import org.sqlite.SQLiteConfig;
+import org.sqlite.SQLiteDataSource;
+import org.sqlite.javax.SQLiteConnectionPoolDataSource;
+import oracle.jdbc.pool.OracleDataSource;
 
 /**
  * @author Thomas Freese
@@ -33,10 +31,11 @@ public final class TestUtil
      * Fügt am Index 1 der Liste eine Trenn-Linie ein.<br>
      * Die Breite pro Spalte orientiert sich am ersten Wert (Header) der Spalte.<br>
      *
-     * @param <T>       Konkreter Typ
-     * @param rows      {@link List}
+     * @param <T> Konkreter Typ
+     * @param rows {@link List}
      * @param separator String
      */
+    @SuppressWarnings("unchecked")
     private static <T extends CharSequence> void addHeaderSeparator(final List<T[]> rows, final String separator)
     {
         if ((rows == null) || rows.isEmpty())
@@ -65,7 +64,6 @@ public final class TestUtil
 
     /**
      * @param dataSource {@link DataSource}
-     *
      * @throws Exception Falls was schief geht.
      */
     public static void closeDataSource(final DataSource dataSource) throws Exception
@@ -90,7 +88,6 @@ public final class TestUtil
 
     /**
      * @param url String
-     *
      * @return {@link DataSource}
      */
     public static DataSource createHsqlDBDataSource(final String url)
@@ -108,9 +105,7 @@ public final class TestUtil
 
     /**
      * @param url String
-     *
      * @return {@link DataSource}
-     *
      * @throws SQLException Falls was schief geht.
      */
     public static DataSource createMySQLDBDataSource(final String url) throws SQLException
@@ -126,9 +121,7 @@ public final class TestUtil
 
     /**
      * @param url String
-     *
      * @return {@link DataSource}
-     *
      * @throws SQLException Falls was schief geht.
      */
     public static DataSource createOracleDataSource(final String url) throws SQLException
@@ -146,15 +139,14 @@ public final class TestUtil
 
     /**
      * @param url String
-     *
      * @return {@link DataSource}
      */
     public static DataSource createSQLiteDataSource(final String url)
     {
         // jdbc:sqlite:/tmp/MyVideos99.db
         SQLiteConfig config = new SQLiteConfig();
-        //config.setReadOnly(true);
-        //config.setReadUncommited(true);
+        // config.setReadOnly(true);
+        // config.setReadUncommited(true);
 
         SQLiteDataSource dataSource = new SQLiteConnectionPoolDataSource(config);
         dataSource.setUrl(url);
@@ -167,12 +159,12 @@ public final class TestUtil
      * Ist das Padding null oder leer wird nichts gemacht.<br>
      * Beim Padding werden die CharSequences durch Strings ersetzt.
      *
-     * @param <T>     Konkreter Typ
-     * @param rows    {@link List}
+     * @param <T> Konkreter Typ
+     * @param rows {@link List}
      * @param padding String
-     *
      * @see #write(List, PrintStream, String)
      */
+    @SuppressWarnings("unchecked")
     private static <T extends CharSequence> void padding(final List<T[]> rows, final String padding)
     {
         if ((rows == null) || rows.isEmpty())
@@ -201,8 +193,7 @@ public final class TestUtil
         // Strings pro Spalte formatieren und schreiben.
         String pad = (padding == null) || padding.trim().isEmpty() ? " " : padding;
 
-        rows.stream().parallel().forEach(r ->
-        {
+        rows.stream().parallel().forEach(r -> {
             for (int column = 0; column < columnCount; column++)
             {
                 String value = rightPad(r[column].toString(), columnWidth[column], pad);
@@ -213,10 +204,9 @@ public final class TestUtil
     }
 
     /**
-     * @param value   String
-     * @param size    int
+     * @param value String
+     * @param size int
      * @param padding String
-     *
      * @return String
      */
     private static String rightPad(final String value, final int size, final String padding)
@@ -242,9 +232,7 @@ public final class TestUtil
      * Wenn das ResultSet einen Typ != ResultSet.TYPE_FORWARD_ONLY besitzt, wird {@link ResultSet#first()} aufgerufen und kann weiter verwendet werden.
      *
      * @param resultSet {@link ResultSet}
-     *
      * @return {@link List}
-     *
      * @throws SQLException Falls was schief geht.
      */
     private static List<String[]> toList(final ResultSet resultSet) throws SQLException
@@ -305,9 +293,9 @@ public final class TestUtil
      * Schreibt die Liste in den PrintStream.<br>
      * Der Stream wird nicht geschlossen.
      *
-     * @param <T>       Konkreter Typ von CharSequence
-     * @param rows      {@link List}
-     * @param ps        {@link PrintStream}
+     * @param <T> Konkreter Typ von CharSequence
+     * @param rows {@link List}
+     * @param ps {@link PrintStream}
      * @param separator String
      */
     private static <T extends CharSequence> void write(final List<T[]> rows, final PrintStream ps, final String separator)
@@ -336,8 +324,7 @@ public final class TestUtil
      * Wenn das ResultSet einen Typ != ResultSet.TYPE_FORWARD_ONLY besitzt, wird ResultSet.first() aufgerufen und kann weiter verwendet werden.
      *
      * @param resultSet {@link ResultSet}
-     * @param ps        {@link PrintStream}
-     *
+     * @param ps {@link PrintStream}
      * @throws SQLException Falls was schief geht.
      */
     public static void write(final ResultSet resultSet, final PrintStream ps) throws SQLException
