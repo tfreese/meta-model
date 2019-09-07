@@ -20,7 +20,6 @@ import org.mariadb.jdbc.MariaDbPoolDataSource;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 import org.sqlite.javax.SQLiteConnectionPoolDataSource;
-import oracle.jdbc.pool.OracleDataSource;
 
 /**
  * @author Thomas Freese
@@ -126,15 +125,16 @@ public final class TestUtil
      */
     public static DataSource createOracleDataSource(final String url) throws SQLException
     {
+        throw new UnsupportedOperationException();
         // jdbc:oracle:thin:@//HOST:1560/service
         // remarksReporting: Für Anzeige der Kommentare
-        OracleDataSource dataSource = new OracleDataSource();
-        dataSource.setDriverType("thin");
-        dataSource.setURL(url + "?remarksReporting=true");
-        dataSource.setUser("...");
-        dataSource.setPassword("...");
-
-        return dataSource;
+        // OracleDataSource dataSource = new OracleDataSource();
+        // dataSource.setDriverType("thin");
+        // dataSource.setURL(url + "?remarksReporting=true");
+        // dataSource.setUser("...");
+        // dataSource.setPassword("...");
+        //
+        // return dataSource;
     }
 
     /**
