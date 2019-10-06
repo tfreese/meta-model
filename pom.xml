@@ -74,8 +74,8 @@
 
         <!-- test scope -->
         <!--dependency>
-            <groupId>com.oracle</groupId>
-            <artifactId>ojdbc8</artifactId>
+            <groupId>com.oracle.ojdbc</groupId>
+            <artifactId>ojdbc10</artifactId>
             <scope>test</scope>
         </dependency-->
         <dependency>
