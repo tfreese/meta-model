@@ -57,7 +57,7 @@ public class ClassType implements Type
     /**
      * @return {@link Class}
      */
-    private Class<?> getJavaClass()
+    public Class<?> getJavaClass()
     {
         return this.javaClass;
     }

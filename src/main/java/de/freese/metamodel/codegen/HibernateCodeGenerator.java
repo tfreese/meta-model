@@ -1,5 +1,5 @@
 /**
- * Created: 29.07.2018
+ * Created: 22.04.2020
  */
 
 package de.freese.metamodel.codegen;
@@ -7,38 +7,39 @@ package de.freese.metamodel.codegen;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.QueryHint;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import de.freese.metamodel.Config;
-import de.freese.metamodel.modelgen.ClassModel;
-import de.freese.metamodel.modelgen.FieldModel;
+import de.freese.metamodel.codegen.model.ClassModel;
+import de.freese.metamodel.codegen.model.FieldModel;
+import de.freese.metamodel.metagen.model.Column;
+import de.freese.metamodel.metagen.model.Table;
 
 /**
- * Java-Implementierung für Hibernate-Entities eines {@link CodeWriter}.
- *
  * @author Thomas Freese
  */
-public class HibernateCodeWriter extends JpaCodeWriter
+public class HibernateCodeGenerator extends JpaCodeGenerator
 {
     /**
-     * Erstellt ein neues {@link HibernateCodeWriter} Object.
+     * Erstellt ein neues {@link HibernateCodeGenerator} Object.
      */
-    public HibernateCodeWriter()
+    public HibernateCodeGenerator()
     {
         super();
     }
 
     /**
-     * @see de.freese.metamodel.codegen.JpaCodeWriter#createClassAnnotations(de.freese.metamodel.Config, de.freese.metamodel.modelgen.ClassModel)
+     * @see de.freese.metamodel.codegen.JpaCodeGenerator#transformClassAnnotations(de.freese.metamodel.metagen.model.Table,
+     *      de.freese.metamodel.codegen.model.ClassModel)
      */
     @Override
-    protected void createClassAnnotations(final Config config, final ClassModel classModel)
+    protected void transformClassAnnotations(final Table table, final ClassModel classModel)
     {
-        super.createClassAnnotations(config, classModel);
+        super.transformClassAnnotations(table, classModel);
 
         String className = classModel.getName();
 
@@ -69,20 +70,36 @@ public class HibernateCodeWriter extends JpaCodeWriter
     }
 
     /**
-     * @see de.freese.metamodel.codegen.JpaCodeWriter#createFieldAnnotations(de.freese.metamodel.Config, de.freese.metamodel.modelgen.FieldModel)
+     * @see de.freese.metamodel.codegen.JpaCodeGenerator#transformClassJavaDoc(de.freese.metamodel.metagen.model.Table,
+     *      de.freese.metamodel.codegen.model.ClassModel)
      */
     @Override
-    protected void createFieldAnnotations(final Config config, final FieldModel fieldModel)
+    protected void transformClassJavaDoc(final Table table, final ClassModel classModel)
     {
-        super.createFieldAnnotations(config, fieldModel);
+        if (StringUtils.isNotBlank(table.getComment()))
+        {
+            classModel.addComment(table.getComment());
+        }
 
-        if (fieldModel.getType().isAssoziation())
+        classModel.addComment("Hibernate-Entity für Tabelle " + table.getSchema().getName() + "." + table.getName() + ".");
+    }
+
+    /**
+     * @see de.freese.metamodel.codegen.JpaCodeGenerator#transformFieldAnnotations(de.freese.metamodel.metagen.model.Column,
+     *      de.freese.metamodel.codegen.model.FieldModel)
+     */
+    @Override
+    protected void transformFieldAnnotations(final Column column, final FieldModel fieldModel)
+    {
+        super.transformFieldAnnotations(column, fieldModel);
+
+        if (fieldModel.isAssoziation())
         {
             // Assoziation = Collections und Objekt-Referenzen.
             fieldModel.getClassModel().addImport(CacheConcurrencyStrategy.class);
             fieldModel.getClassModel().addImport(Cache.class);
 
-            if (fieldModel.getType().isCollection())
+            if (fieldModel.isCollection())
             {
                 fieldModel.getClassModel().addImport(Fetch.class);
                 fieldModel.getClassModel().addImport(FetchMode.class);

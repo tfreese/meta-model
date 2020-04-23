@@ -2,10 +2,11 @@
  * Created: 29.07.2018
  */
 
-package de.freese.metamodel.modelgen;
+package de.freese.metamodel.codegen.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Basis-Implementierung eines Model-Objekts.
@@ -27,14 +28,23 @@ public abstract class AbstractModel
     /**
     *
     */
-    public String name = null;
+    public final String name;
+
+    /**
+    *
+    */
+    public Object payload = null;
 
     /**
      * Erstellt ein neues {@link AbstractModel} Object.
+     *
+     * @param name String
      */
-    public AbstractModel()
+    public AbstractModel(final String name)
     {
         super();
+
+        this.name = Objects.requireNonNull(name, "name required");
     }
 
     /**
@@ -58,7 +68,7 @@ public abstract class AbstractModel
      */
     public List<String> getAnnotations()
     {
-        return new ArrayList<>(this.annotations);
+        return this.annotations;
     }
 
     /**
@@ -66,7 +76,7 @@ public abstract class AbstractModel
      */
     public List<String> getComments()
     {
-        return new ArrayList<>(this.comments);
+        return this.comments;
     }
 
     /**
@@ -78,10 +88,19 @@ public abstract class AbstractModel
     }
 
     /**
-     * @param name String
+     * @return Object
      */
-    public void setName(final String name)
+    @SuppressWarnings("unchecked")
+    public <T> T getPayload()
     {
-        this.name = name;
+        return (T) this.payload;
+    }
+
+    /**
+     * @param payload Object
+     */
+    public void setPayload(final Object payload)
+    {
+        this.payload = payload;
     }
 }

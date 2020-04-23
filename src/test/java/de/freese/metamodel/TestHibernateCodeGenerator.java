@@ -6,6 +6,7 @@ package de.freese.metamodel;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterAll;
@@ -13,7 +14,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import de.freese.metamodel.codegen.HibernateCodeWriter;
+import de.freese.metamodel.codegen.HibernateCodeGenerator;
+import de.freese.metamodel.codegen.writer.JavaCodeWriter;
 import de.freese.metamodel.metagen.HsqldbMetaExporter;
 import de.freese.metamodel.modelgen.mapping.JavaTypeMapping;
 
@@ -60,10 +62,14 @@ public class TestHibernateCodeGenerator
     @Test
     public void test010Create() throws Exception
     {
-        CodeGenerator codeGenerator = new CodeGenerator();
+        Path path = Paths.get("src/test/generated", "test", "hibernate");
+        Files.deleteIfExists(path.resolve("Address.java"));
+        Files.deleteIfExists(path.resolve("Person.java"));
+
+        HibernateCodeGenerator codeGenerator = new HibernateCodeGenerator();
         codeGenerator.setMetaExporter(new HsqldbMetaExporter());
         codeGenerator.setTypeMapping(new JavaTypeMapping());
-        codeGenerator.setCodeWriter(new HibernateCodeWriter());
+        codeGenerator.setCodeWriter(new JavaCodeWriter());
         // codeGenerator.setNamingStrategy(new DefaultNamingStrategy());
         codeGenerator.setSchemaName("PUBLIC");
         codeGenerator.setTargetFolder(Paths.get("src/test/generated"));
@@ -74,6 +80,7 @@ public class TestHibernateCodeGenerator
 
         codeGenerator.generate(dataSource);
 
-        assertTrue(Files.exists(Paths.get("src/test/generated", "test", "hibernate")));
+        assertTrue(Files.exists(path.resolve("Address.java")));
+        assertTrue(Files.exists(path.resolve("Person.java")));
     }
 }
