@@ -91,7 +91,7 @@ public class FieldModel extends AbstractModel
     /**
      * @return String
      */
-    public synchronized Class<?> getFieldClazz()
+    synchronized Class<?> getFieldClazz()
     {
         if (this.fieldClazz == null)
         {
@@ -146,7 +146,28 @@ public class FieldModel extends AbstractModel
      */
     public boolean isFieldClassArray()
     {
-        return getFieldClazz().isArray();
+        // return getFieldClazz().isArray();
+        return getFieldClazzName().contains("[]");
+    }
+
+    /**
+     * @param clazz Class
+     * @return boolean
+     */
+    public boolean isFieldClassInstanceOf(final Class<?> clazz)
+    {
+        String clazzSimpleName = clazz.getSimpleName();
+        String fieldClassSimpleName = getFieldClazzSimpleName();
+
+        boolean isInstanceOf = false;
+
+        if (clazzSimpleName.startsWith(fieldClassSimpleName))
+        {
+            isInstanceOf = true;
+        }
+
+        return isInstanceOf;
+
     }
 
     /**
@@ -154,7 +175,36 @@ public class FieldModel extends AbstractModel
      */
     public boolean isFieldClassPrimitive()
     {
-        return getFieldClazz().isPrimitive();
+        // return getFieldClazz().isPrimitive();
+
+        boolean isPrimitve = false;
+
+        if (getFieldClazzName().startsWith("int"))
+        {
+            isPrimitve = true;
+        }
+        else if (getFieldClazzName().startsWith("long"))
+        {
+            isPrimitve = true;
+        }
+        else if (getFieldClazzName().startsWith("float"))
+        {
+            isPrimitve = true;
+        }
+        else if (getFieldClazzName().startsWith("double"))
+        {
+            isPrimitve = true;
+        }
+        else if (getFieldClazzName().startsWith("byte"))
+        {
+            isPrimitve = true;
+        }
+        else if (getFieldClazzName().startsWith("short"))
+        {
+            isPrimitve = true;
+        }
+
+        return isPrimitve;
     }
 
     /**

@@ -310,7 +310,7 @@ public abstract class AbstractCodeWriter implements CodeWriter
         // double vorhanden ?
         for (FieldModel fieldModel : classModel.getFields())
         {
-            if (fieldModel.getFieldClazz().equals(double.class))
+            if (fieldModel.isFieldClassInstanceOf(double.class))
             {
                 output.println(TAB + TAB + "long temp = 0L;");
                 break;
@@ -322,22 +322,21 @@ public abstract class AbstractCodeWriter implements CodeWriter
         for (FieldModel fieldModel : classModel.getFields())
         {
             String fieldName = fieldModel.getName();
-            Class<?> clazz = fieldModel.getFieldClazz();
 
-            if (clazz.equals(int.class))
+            if (fieldModel.isFieldClassInstanceOf(int.class))
             {
                 output.println(TAB + TAB + "result = prime * result + this." + fieldName + ";");
             }
-            else if (clazz.equals(long.class))
+            else if (fieldModel.isFieldClassInstanceOf(long.class))
             {
                 output.printf(TAB + TAB + "result = prime * result + (int) (this.%1$s ^ (this.%1$s >>> 32));%n", fieldName);
             }
-            else if (clazz.equals(double.class))
+            else if (fieldModel.isFieldClassInstanceOf(double.class))
             {
                 output.println(TAB + TAB + "temp = Double.doubleToLongBits(this." + fieldName + ");");
                 output.println(TAB + TAB + "result = prime * result + (int) (temp ^ (temp >>> 32));");
             }
-            else if (clazz.equals(float.class))
+            else if (fieldModel.isFieldClassInstanceOf(float.class))
             {
                 output.println(TAB + TAB + "result = prime * result + Float.floatToIntBits(this." + fieldName + ");");
             }
