@@ -125,7 +125,8 @@
 
 		<!-- test scope -->
 		<dependency>
-			<groupId>com.oracle.ojdbc</groupId>
+			<!--groupId>com.oracle.ojdbc</groupId-->
+			<groupId>com.oracle.database.jdbc</groupId>
 			<artifactId>ojdbc10</artifactId>
 			<scope>test</scope>
 		</dependency>
