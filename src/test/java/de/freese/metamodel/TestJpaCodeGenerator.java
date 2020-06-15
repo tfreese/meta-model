@@ -23,7 +23,7 @@ import de.freese.metamodel.modelgen.mapping.JavaTypeMapping;
  * @author Thomas Freese
  */
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
-public class TestJpaCodeGenerator
+class TestJpaCodeGenerator
 {
     /**
     *
@@ -34,7 +34,7 @@ public class TestJpaCodeGenerator
      * @throws Exception Falls was schief geht.
      */
     @AfterAll
-    public static void afterAll() throws Exception
+    static void afterAll() throws Exception
     {
         TestUtil.closeDataSource(dataSource);
     }
@@ -43,24 +43,16 @@ public class TestJpaCodeGenerator
     *
     */
     @BeforeAll
-    public static void beforeAll()
+    static void beforeAll()
     {
         dataSource = TestUtil.createHsqlDBDataSource("jdbc:hsqldb:res:hsqldb/person;create=false;readonly=true");
-    }
-
-    /**
-     * Erstellt ein neues {@link TestJpaCodeGenerator} Object.
-     */
-    public TestJpaCodeGenerator()
-    {
-        super();
     }
 
     /**
      * @throws Exception Falls was schief geht.
      */
     @Test
-    public void test010Create() throws Exception
+    void test010Create() throws Exception
     {
         Path path = Paths.get("src/test/generated", "test", "jpa");
         Files.deleteIfExists(path.resolve("Address.java"));
@@ -71,7 +63,7 @@ public class TestJpaCodeGenerator
         codeGenerator.setTypeMapping(new JavaTypeMapping());
         codeGenerator.setCodeWriter(new JavaCodeWriter());
         // codeGenerator.setNamingStrategy(new DefaultNamingStrategy());
-        codeGenerator.setSchemaName("PUBLIC");
+        codeGenerator.setSchemaName("");
         codeGenerator.setTargetFolder(Paths.get("src/test/generated"));
         codeGenerator.setPackageName("test.jpa");
         codeGenerator.setSerializeable(true);

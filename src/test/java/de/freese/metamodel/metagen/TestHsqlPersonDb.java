@@ -29,7 +29,7 @@ import de.freese.metamodel.metagen.model.UniqueConstraint;
  * @author Thomas Freese
  */
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
-public class TestHsqlPersonDb
+class TestHsqlPersonDb
 {
     /**
     *
@@ -40,7 +40,7 @@ public class TestHsqlPersonDb
      * @throws Exception Falls was schief geht.
      */
     @AfterAll
-    public static void afterAll() throws Exception
+    static void afterAll() throws Exception
     {
         TestUtil.closeDataSource(dataSource);
     }
@@ -49,7 +49,7 @@ public class TestHsqlPersonDb
     *
     */
     @BeforeAll
-    public static void beforeAll()
+    static void beforeAll()
     {
         dataSource = TestUtil.createHsqlDBDataSource("jdbc:hsqldb:res:hsqldb/person;create=false;readonly=true");
     }
@@ -62,21 +62,13 @@ public class TestHsqlPersonDb
     /**
      *
      */
-    private final String schemaName = "PUBLIC";
-
-    /**
-     * Erstellt ein neues {@link TestHsqlPersonDb} Object.
-     */
-    public TestHsqlPersonDb()
-    {
-        super();
-    }
+    private final String schemaName = "";
 
     /**
      * @throws Exception Falls was schief geht.
      */
     @Test
-    public void test010Schema() throws Exception
+    void test010Schema() throws Exception
     {
         Schema schema = this.generator.export(dataSource, this.schemaName, null);
         assertNotNull(schema);
@@ -87,7 +79,7 @@ public class TestHsqlPersonDb
      * @throws Exception Falls was schief geht.
      */
     @Test
-    public void test020Sequences() throws Exception
+    void test020Sequences() throws Exception
     {
         Schema schema = this.generator.export(dataSource, this.schemaName, null);
         assertNotNull(schema);
@@ -106,7 +98,7 @@ public class TestHsqlPersonDb
      * @throws Exception Falls was schief geht.
      */
     @Test
-    public void test030Table() throws Exception
+    void test030Table() throws Exception
     {
         Schema schema = this.generator.export(dataSource, this.schemaName, null);
         assertNotNull(schema);
@@ -125,7 +117,7 @@ public class TestHsqlPersonDb
      * @throws Exception Falls was schief geht.
      */
     @Test
-    public void test040Columns() throws Exception
+    void test040Columns() throws Exception
     {
         Schema schema = this.generator.export(dataSource, this.schemaName, "T_PERSON");
         assertNotNull(schema);
@@ -150,7 +142,7 @@ public class TestHsqlPersonDb
      * @throws Exception Falls was schief geht.
      */
     @Test
-    public void test050PrimaryKey() throws Exception
+    void test050PrimaryKey() throws Exception
     {
         Schema schema = this.generator.export(dataSource, this.schemaName, "T_PERSON");
         assertNotNull(schema);
@@ -174,7 +166,7 @@ public class TestHsqlPersonDb
      * @throws Exception Falls was schief geht.
      */
     @Test
-    public void test060ForeignKey() throws Exception
+    void test060ForeignKey() throws Exception
     {
         Schema schema = this.generator.export(dataSource, this.schemaName, "T_ADDRESS");
         assertNotNull(schema);
@@ -204,7 +196,7 @@ public class TestHsqlPersonDb
      * @throws Exception Falls was schief geht.
      */
     @Test
-    public void test070Indices() throws Exception
+    void test070Indices() throws Exception
     {
         Schema schema = this.generator.export(dataSource, this.schemaName, "T_PERSON");
         assertNotNull(schema);

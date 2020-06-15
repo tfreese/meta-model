@@ -15,21 +15,13 @@ import org.junit.jupiter.api.TestMethodOrder;
  * @author Thomas Freese
  */
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
-public class TestNaming
+class TestNaming
 {
-    /**
-     * Erstellt ein neues {@link TestNaming} Object.
-     */
-    public TestNaming()
-    {
-        super();
-    }
-
     /**
      *
      */
     @Test
-    public void testClassNaming()
+    void testClassNaming()
     {
         NamingStrategy namingStrategy = new DefaultNamingStrategy();
 
@@ -45,7 +37,7 @@ public class TestNaming
     *
     */
     @Test
-    public void testFieldNaming()
+    void testFieldNaming()
     {
         NamingStrategy namingStrategy = new DefaultNamingStrategy();
 
