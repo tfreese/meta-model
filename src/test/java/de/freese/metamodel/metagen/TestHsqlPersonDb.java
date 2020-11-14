@@ -28,7 +28,7 @@ import de.freese.metamodel.metagen.model.UniqueConstraint;
 /**
  * @author Thomas Freese
  */
-@TestMethodOrder(MethodOrderer.Alphanumeric.class)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 class TestHsqlPersonDb
 {
     /**

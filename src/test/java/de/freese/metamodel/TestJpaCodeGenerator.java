@@ -22,7 +22,7 @@ import de.freese.metamodel.modelgen.mapping.JavaTypeMapping;
 /**
  * @author Thomas Freese
  */
-@TestMethodOrder(MethodOrderer.Alphanumeric.class)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 class TestJpaCodeGenerator
 {
     /**
