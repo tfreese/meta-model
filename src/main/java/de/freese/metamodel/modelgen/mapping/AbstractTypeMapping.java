@@ -28,7 +28,7 @@ public abstract class AbstractTypeMapping implements TypeMapping
     /**
      * Erstellt ein neues {@link AbstractTypeMapping} Object.
      */
-    public AbstractTypeMapping()
+    protected AbstractTypeMapping()
     {
         super();
     }

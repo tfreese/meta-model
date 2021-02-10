@@ -14,7 +14,7 @@ public abstract class AbstractNamingStrategy implements NamingStrategy
     /**
      * Erstellt ein neues {@link AbstractNamingStrategy} Object.
      */
-    public AbstractNamingStrategy()
+    protected AbstractNamingStrategy()
     {
         super();
     }

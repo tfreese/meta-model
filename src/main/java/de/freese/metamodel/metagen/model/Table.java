@@ -36,7 +36,7 @@ public class Table
     /**
     *
     */
-    private String comment = null;
+    private String comment;
 
     /**
     *
@@ -46,17 +46,17 @@ public class Table
     /**
      *
      */
-    private String name = null;
+    private String name;
 
     /**
      *
      */
-    private PrimaryKey primaryKey = null;
+    private PrimaryKey primaryKey;
 
     /**
     *
     */
-    private Schema schema = null;
+    private Schema schema;
 
     /**
     *

@@ -17,14 +17,6 @@ import de.freese.metamodel.metagen.model.Schema;
 public class MariaDbMetaExporter extends AbstractMetaExporter
 {
     /**
-     * Erstellt ein neues {@link MariaDbMetaExporter} Object.
-     */
-    public MariaDbMetaExporter()
-    {
-        super();
-    }
-
-    /**
      * @see de.freese.metamodel.metagen.AbstractMetaExporter#generateSequences(javax.sql.DataSource, de.freese.metamodel.metagen.model.Schema)
      */
     @Override

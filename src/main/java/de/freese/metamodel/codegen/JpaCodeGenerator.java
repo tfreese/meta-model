@@ -38,14 +38,6 @@ import de.freese.metamodel.modelgen.mapping.Type;
 public class JpaCodeGenerator extends PojoCodeGenerator
 {
     /**
-     * Erstellt ein neues {@link JpaCodeGenerator} Object.
-     */
-    public JpaCodeGenerator()
-    {
-        super();
-    }
-
-    /**
      * @see de.freese.metamodel.codegen.AbstractCodeGenerator#transformClassAnnotations(de.freese.metamodel.metagen.model.Table,
      *      de.freese.metamodel.codegen.model.ClassModel)
      */

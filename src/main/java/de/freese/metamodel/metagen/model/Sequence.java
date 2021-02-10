@@ -17,27 +17,27 @@ public class Sequence
     /**
      *
      */
-    private long increment = 0;
+    private long increment;
 
     /**
     *
     */
-    private String name = null;
+    private String name;
 
     /**
      *
      */
-    private long nextValue = 0;
+    private long nextValue;
 
     /**
     *
     */
-    private Schema schema = null;
+    private Schema schema;
 
     /**
      *
      */
-    private long startWith = 0;
+    private long startWith;
 
     /**
      * Erstellt ein neues {@link Sequence} Object.

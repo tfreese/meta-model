@@ -38,17 +38,17 @@ public abstract class AbstractCodeGenerator
     /**
     *
     */
-    private boolean addFullConstructor = false;
+    private boolean addFullConstructor;
 
     /**
     *
     */
-    private CodeWriter codeWriter = null;
+    private CodeWriter codeWriter;
 
     /**
     *
     */
-    private MetaExporter metaExporter = null;
+    private MetaExporter metaExporter;
 
     /**
     *
@@ -58,42 +58,42 @@ public abstract class AbstractCodeGenerator
     /**
     *
     */
-    private String packageName = null;
+    private String packageName;
 
     /**
     *
     */
-    private String schemaName = null;
+    private String schemaName;
 
     /**
     *
     */
-    private boolean serializeable = false;
+    private boolean serializeable;
 
     /**
     *
     */
-    private String tableNamePattern = null;
+    private String tableNamePattern;
 
     /**
     *
     */
-    private Path targetFolder = null;
+    private Path targetFolder;
 
     /**
     *
     */
-    private TypeMapping typeMapping = null;
+    private TypeMapping typeMapping;
 
     /**
     *
     */
-    private boolean validationAnnotations = false;
+    private boolean validationAnnotations;
 
     /**
      * Erstellt ein neues {@link AbstractCodeGenerator} Object.
      */
-    public AbstractCodeGenerator()
+    protected AbstractCodeGenerator()
     {
         super();
     }
@@ -132,7 +132,7 @@ public abstract class AbstractCodeGenerator
                         Column column = field.getPayload();
                         return toStringColumns.contains(column);
                     })
-                    .forEach(field -> field.setUseForToString(true));
+                    .forEach(field -> field.setUseForToString(true))
                     ;
             // @formatter:on
 
@@ -179,7 +179,7 @@ public abstract class AbstractCodeGenerator
             columns = table.getPrimaryKey().getColumnsOrdered();
         }
 
-        if (columns.isEmpty())
+        if ((columns == null) || columns.isEmpty())
         {
             // Finde alle Columns mit UniqueConstraints.
             // @formatter:off
@@ -190,7 +190,7 @@ public abstract class AbstractCodeGenerator
             // @formatter:on
         }
 
-        if (columns.isEmpty())
+        if ((columns == null) || columns.isEmpty())
         {
             // Finde alle Columns mit ForeignKeys.
             // @formatter:off
@@ -202,7 +202,7 @@ public abstract class AbstractCodeGenerator
             // @formatter:on
         }
 
-        if (columns.isEmpty())
+        if ((columns == null) || columns.isEmpty())
         {
             // Alle Columns.
             columns = table.getColumnsOrdered();

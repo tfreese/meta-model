@@ -19,7 +19,7 @@ public class AssoziationType implements Type
     /**
      *
      */
-    private boolean isCollection = false;
+    private boolean isCollection;
 
     /**
      *

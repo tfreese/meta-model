@@ -14,14 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 public class DefaultNamingStrategy extends AbstractNamingStrategy
 {
     /**
-     * Erstellt ein neues {@link DefaultNamingStrategy} Object.
-     */
-    public DefaultNamingStrategy()
-    {
-        super();
-    }
-
-    /**
      * @see de.freese.metamodel.modelgen.naming.NamingStrategy#getClassName(java.lang.String)
      */
     @Override

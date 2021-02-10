@@ -26,7 +26,7 @@ public class Column
     /**
     *
     */
-    private String comment = null;
+    private String comment;
 
     /**
     *
@@ -36,17 +36,17 @@ public class Column
     /**
      *
      */
-    private ForeignKey foreignKey = null;
+    private ForeignKey foreignKey;
 
     /**
      *
      */
-    private String name = null;
+    private String name;
 
     /**
     *
     */
-    private boolean nullable = false;
+    private boolean nullable;
 
     /**
      * Columns anderer Tabellen, die auf diese Column zeigen.
@@ -66,17 +66,17 @@ public class Column
     /**
     *
     */
-    private Table table = null;
+    private Table table;
 
     /**
     *
     */
-    private int tableIndex = 0;
+    private int tableIndex;
 
     /**
     *
     */
-    private String typeName = null;
+    private String typeName;
 
     /**
      * Erstellt ein neues {@link Column} Object.
@@ -111,14 +111,6 @@ public class Column
     }
 
     /**
-     * @return {@link JDBCType}
-     */
-    public JDBCType getJdbcType()
-    {
-        return JDBCType.valueOf(getSqlType());
-    }
-
-    /**
      * @return String
      */
     public String getComment()
@@ -140,6 +132,14 @@ public class Column
     public ForeignKey getForeignKey()
     {
         return this.foreignKey;
+    }
+
+    /**
+     * @return {@link JDBCType}
+     */
+    public JDBCType getJdbcType()
+    {
+        return JDBCType.valueOf(getSqlType());
     }
 
     /**

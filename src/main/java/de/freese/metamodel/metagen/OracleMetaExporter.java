@@ -17,14 +17,6 @@ import de.freese.metamodel.metagen.model.Schema;
 public class OracleMetaExporter extends AbstractMetaExporter
 {
     /**
-     * Erstellt ein neues {@link OracleMetaExporter} Object.
-     */
-    public OracleMetaExporter()
-    {
-        super();
-    }
-
-    /**
      * @see de.freese.metamodel.metagen.AbstractMetaExporter#generateSequences(javax.sql.DataSource, de.freese.metamodel.metagen.model.Schema)
      */
     @Override

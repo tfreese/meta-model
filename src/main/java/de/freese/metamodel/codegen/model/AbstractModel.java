@@ -33,14 +33,14 @@ public abstract class AbstractModel
     /**
     *
     */
-    public Object payload = null;
+    public Object payload;
 
     /**
      * Erstellt ein neues {@link AbstractModel} Object.
      *
      * @param name String
      */
-    public AbstractModel(final String name)
+    protected AbstractModel(final String name)
     {
         super();
 

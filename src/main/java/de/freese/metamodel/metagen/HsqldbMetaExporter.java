@@ -20,14 +20,6 @@ import de.freese.metamodel.metagen.model.Sequence;
 public class HsqldbMetaExporter extends AbstractMetaExporter
 {
     /**
-     * Erstellt ein neues {@link HsqldbMetaExporter} Object.
-     */
-    public HsqldbMetaExporter()
-    {
-        super();
-    }
-
-    /**
      * @see de.freese.metamodel.metagen.AbstractMetaExporter#generateSequences(javax.sql.DataSource, de.freese.metamodel.metagen.model.Schema)
      */
     @Override

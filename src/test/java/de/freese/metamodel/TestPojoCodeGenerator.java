@@ -12,6 +12,7 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import de.freese.metamodel.codegen.PojoCodeGenerator;
@@ -22,7 +23,7 @@ import de.freese.metamodel.modelgen.mapping.JavaTypeMapping;
 /**
  * @author Thomas Freese
  */
-@TestMethodOrder(MethodOrderer.MethodName.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TestPojoCodeGenerator
 {
     /**
@@ -52,7 +53,8 @@ class TestPojoCodeGenerator
      * @throws Exception Falls was schief geht.
      */
     @Test
-    void test010Create() throws Exception
+    @Order(1)
+    void testCreate() throws Exception
     {
         Path path = Paths.get("src/test/generated", "test", "pojo");
         Files.deleteIfExists(path.resolve("Address.java"));

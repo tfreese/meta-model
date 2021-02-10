@@ -35,7 +35,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
     /**
      * Erstellt ein neues {@link AbstractMetaExporter} Object.
      */
-    public AbstractMetaExporter()
+    protected AbstractMetaExporter()
     {
         super();
     }

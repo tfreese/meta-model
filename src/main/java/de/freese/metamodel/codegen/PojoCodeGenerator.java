@@ -14,14 +14,6 @@ import de.freese.metamodel.metagen.model.Table;
 public class PojoCodeGenerator extends AbstractCodeGenerator
 {
     /**
-     * Erstellt ein neues {@link PojoCodeGenerator} Object.
-     */
-    public PojoCodeGenerator()
-    {
-        super();
-    }
-
-    /**
      * @see de.freese.metamodel.codegen.AbstractCodeGenerator#transformClassJavaDoc(de.freese.metamodel.metagen.model.Table,
      *      de.freese.metamodel.codegen.model.ClassModel)
      */

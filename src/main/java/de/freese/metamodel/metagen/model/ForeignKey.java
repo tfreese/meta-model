@@ -19,7 +19,7 @@ public class ForeignKey
     /**
     *
     */
-    private String name = null;
+    private String name;
 
     /**
     *

@@ -23,17 +23,17 @@ public abstract class AbstractIndex
     /**
     *
     */
-    private String name = null;
+    private String name;
 
     /**
     *
     */
-    private Table table = null;
+    private Table table;
 
     /**
      * Erstellt ein neues {@link AbstractIndex} Object.
      */
-    public AbstractIndex()
+    protected AbstractIndex()
     {
         super();
     }

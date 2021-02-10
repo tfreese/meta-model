@@ -34,7 +34,7 @@ public abstract class AbstractCodeWriter implements CodeWriter
     /**
      * Erstellt ein neues {@link AbstractCodeWriter} Object.
      */
-    public AbstractCodeWriter()
+    protected AbstractCodeWriter()
     {
         super();
     }
@@ -100,7 +100,7 @@ public abstract class AbstractCodeWriter implements CodeWriter
         writeJavaDoc(output, classModel.getComments(), "");
 
         // Class-Annotations
-        classModel.getAnnotations().forEach(i -> output.println(i));
+        classModel.getAnnotations().forEach(output::println);
 
         output.print("public class " + classModel.getName());
 

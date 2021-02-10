@@ -17,14 +17,6 @@ import de.freese.metamodel.metagen.model.Schema;
 public class SQLiteMetaExporter extends AbstractMetaExporter
 {
     /**
-     * Erstellt ein neues {@link SQLiteMetaExporter} Object.
-     */
-    public SQLiteMetaExporter()
-    {
-        super();
-    }
-
-    /**
      * @see de.freese.metamodel.metagen.AbstractMetaExporter#generateSequences(javax.sql.DataSource, de.freese.metamodel.metagen.model.Schema)
      */
     @Override

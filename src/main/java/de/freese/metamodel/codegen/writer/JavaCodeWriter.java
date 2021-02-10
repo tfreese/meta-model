@@ -12,14 +12,6 @@ package de.freese.metamodel.codegen.writer;
 public class JavaCodeWriter extends AbstractCodeWriter
 {
     /**
-     * Erstellt ein neues {@link JavaCodeWriter} Object.
-     */
-    public JavaCodeWriter()
-    {
-        super();
-    }
-
-    /**
      * @see de.freese.metamodel.codegen.writer.AbstractCodeWriter#getFileExtension()
      */
     @Override

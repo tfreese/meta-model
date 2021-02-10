@@ -19,7 +19,7 @@ public class Schema
     /**
      *
      */
-    private String name = null;
+    private String name;
 
     /**
     *
@@ -30,14 +30,6 @@ public class Schema
     *
     */
     private final Map<String, Table> tables = new TreeMap<>();
-
-    /**
-     * Erstellt ein neues {@link Schema} Object.
-     */
-    public Schema()
-    {
-        super();
-    }
 
     /**
      * @return String

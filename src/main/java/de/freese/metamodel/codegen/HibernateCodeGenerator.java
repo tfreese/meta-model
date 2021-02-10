@@ -25,14 +25,6 @@ import de.freese.metamodel.metagen.model.Table;
 public class HibernateCodeGenerator extends JpaCodeGenerator
 {
     /**
-     * Erstellt ein neues {@link HibernateCodeGenerator} Object.
-     */
-    public HibernateCodeGenerator()
-    {
-        super();
-    }
-
-    /**
      * @see de.freese.metamodel.codegen.JpaCodeGenerator#transformClassAnnotations(de.freese.metamodel.metagen.model.Table,
      *      de.freese.metamodel.codegen.model.ClassModel)
      */
