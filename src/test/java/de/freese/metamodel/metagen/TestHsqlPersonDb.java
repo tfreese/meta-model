@@ -62,7 +62,7 @@ class TestHsqlPersonDb
     /**
      *
      */
-    private final String schemaName = "";
+    private final String schemaName = "PUBLIC";
 
     /**
      * @throws Exception Falls was schief geht.

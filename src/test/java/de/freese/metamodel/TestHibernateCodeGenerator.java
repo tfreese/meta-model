@@ -65,7 +65,7 @@ class TestHibernateCodeGenerator
         codeGenerator.setTypeMapping(new JavaTypeMapping());
         codeGenerator.setCodeWriter(new JavaCodeWriter());
         // codeGenerator.setNamingStrategy(new DefaultNamingStrategy());
-        codeGenerator.setSchemaName("");
+        codeGenerator.setSchemaName("PUBLIC");
         codeGenerator.setTargetFolder(Paths.get("src/test/generated"));
         codeGenerator.setPackageName("test.hibernate");
         codeGenerator.setSerializeable(true);

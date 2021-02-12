@@ -41,10 +41,10 @@ class TestPojoCodeGenerator
     }
 
     /**
-    *
-    */
+     * @throws Exception Falls was schief geht.
+     */
     @BeforeAll
-    static void beforeAll()
+    static void beforeAll() throws Exception
     {
         dataSource = TestUtil.createHsqlDBDataSource("jdbc:hsqldb:res:hsqldb/person;create=false;readonly=true");
     }
@@ -65,7 +65,7 @@ class TestPojoCodeGenerator
         codeGenerator.setTypeMapping(new JavaTypeMapping());
         codeGenerator.setCodeWriter(new JavaCodeWriter());
         // codeGenerator.setNamingStrategy(new DefaultNamingStrategy());
-        codeGenerator.setSchemaName("");
+        codeGenerator.setSchemaName("PUBLIC");
         codeGenerator.setTargetFolder(Paths.get("src/test/generated"));
         codeGenerator.setPackageName("test.pojo");
         codeGenerator.setSerializeable(true);

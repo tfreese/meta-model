@@ -228,7 +228,11 @@ public abstract class AbstractMetaExporter implements MetaExporter
     public Schema export(final DataSource dataSource, final String schemaName, final String tableNamePattern) throws Exception
     {
         Objects.requireNonNull(dataSource, "dataSource required");
-        Objects.requireNonNull(schemaName, "schemaName required");
+
+        if (StringUtils.isBlank(schemaName))
+        {
+            throw new IllegalArgumentException("schemaName required");
+        }
 
         Schema schema = new Schema();
         schema.setName(schemaName);
@@ -279,7 +283,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
         {
             DatabaseMetaData dbmd = connection.getMetaData();
 
-            try (ResultSet resultSet = dbmd.getColumns(table.getSchema().getName(), table.getSchema().getName(), table.getName(), null))
+            try (ResultSet resultSet = dbmd.getColumns(null, table.getSchema().getName(), table.getName(), null))
             {
                 while (resultSet.next())
                 {
@@ -301,7 +305,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
             DatabaseMetaData dbmd = connection.getMetaData();
 
             // ForeignKeys von dieser Tabelle.
-            try (ResultSet resultSet = dbmd.getImportedKeys(table.getSchema().getName(), table.getSchema().getName(), table.getName()))
+            try (ResultSet resultSet = dbmd.getImportedKeys(null, table.getSchema().getName(), table.getName()))
             {
                 while (resultSet.next())
                 {
@@ -331,7 +335,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
         {
             DatabaseMetaData dbmd = connection.getMetaData();
 
-            try (ResultSet resultSet = dbmd.getIndexInfo(table.getSchema().getName(), table.getSchema().getName(), table.getName(), false, true))
+            try (ResultSet resultSet = dbmd.getIndexInfo(null, table.getSchema().getName(), table.getName(), false, true))
             {
                 while (resultSet.next())
                 {
@@ -352,7 +356,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
         {
             DatabaseMetaData dbmd = connection.getMetaData();
 
-            try (ResultSet resultSet = dbmd.getPrimaryKeys(table.getSchema().getName(), table.getSchema().getName(), table.getName()))
+            try (ResultSet resultSet = dbmd.getPrimaryKeys(null, table.getSchema().getName(), table.getName()))
             {
                 while (resultSet.next())
                 {
@@ -381,7 +385,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
         {
             DatabaseMetaData dbmd = connection.getMetaData();
 
-            try (ResultSet resultSet = dbmd.getTables(schema.getName(), schema.getName(), tableNamePattern, new String[]
+            try (ResultSet resultSet = dbmd.getTables(null, schema.getName(), tableNamePattern, new String[]
             {
                     "TABLE"
             }))

@@ -108,8 +108,12 @@ public abstract class AbstractCodeGenerator
     {
         // Export MetaModel.
         Objects.requireNonNull(dataSource, "dataSource required");
-        Objects.requireNonNull(this.schemaName, "schemaName required");
         Objects.requireNonNull(this.metaExporter, "metaExporter required");
+
+        if (StringUtils.isBlank(this.schemaName))
+        {
+            throw new IllegalArgumentException("schemaName required");
+        }
 
         Schema schema = this.metaExporter.export(dataSource, this.schemaName, this.tableNamePattern);
 
