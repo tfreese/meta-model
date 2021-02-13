@@ -10,14 +10,6 @@ public class PrimaryKey extends AbstractIndex
 {
     /**
      * Erstellt ein neues {@link PrimaryKey} Object.
-     */
-    public PrimaryKey()
-    {
-        super();
-    }
-
-    /**
-     * Erstellt ein neues {@link PrimaryKey} Object.
      *
      * @param table {@link Table}
      * @param name String

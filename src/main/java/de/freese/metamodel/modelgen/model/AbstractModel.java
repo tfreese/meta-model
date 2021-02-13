@@ -2,7 +2,7 @@
  * Created: 29.07.2018
  */
 
-package de.freese.metamodel.codegen.model;
+package de.freese.metamodel.modelgen.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,12 +28,12 @@ public abstract class AbstractModel
     /**
     *
     */
-    public final String name;
+    private final String name;
 
     /**
     *
     */
-    public Object payload;
+    private Object payload;
 
     /**
      * Erstellt ein neues {@link AbstractModel} Object.
@@ -102,5 +102,20 @@ public abstract class AbstractModel
     public void setPayload(final Object payload)
     {
         this.payload = payload;
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName());
+        sb.append(" [");
+        sb.append("name = ").append(this.name);
+        sb.append("]");
+
+        return sb.toString();
     }
 }

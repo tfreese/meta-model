@@ -12,11 +12,6 @@ import java.util.Objects;
 public class AssoziationType implements Type
 {
     /**
-    *
-    */
-    private final String defaultValueAsString;
-
-    /**
      *
      */
     private boolean isCollection;
@@ -30,14 +25,12 @@ public class AssoziationType implements Type
      * Erstellt ein neues {@link AssoziationType} Object.
      *
      * @param simpleName String
-     * @param defaultValueAsString String
      */
-    public AssoziationType(final String simpleName, final String defaultValueAsString)
+    public AssoziationType(final String simpleName)
     {
         super();
 
         this.simpleName = Objects.requireNonNull(simpleName, "simpleName required");
-        this.defaultValueAsString = Objects.requireNonNull(defaultValueAsString, "defaultValueAsString required");
     }
 
     /**
@@ -47,15 +40,6 @@ public class AssoziationType implements Type
     public boolean equals(final Class<?> clazz)
     {
         return false;
-    }
-
-    /**
-     * @see de.freese.metamodel.modelgen.mapping.Type#getDefaultValueAsString()
-     */
-    @Override
-    public String getDefaultValueAsString()
-    {
-        return this.defaultValueAsString;
     }
 
     /**

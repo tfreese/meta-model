@@ -10,14 +10,6 @@ public class Index extends AbstractIndex
 {
     /**
      * Erstellt ein neues {@link Index} Object.
-     */
-    public Index()
-    {
-        super();
-    }
-
-    /**
-     * Erstellt ein neues {@link Index} Object.
      *
      * @param table {@link Table}
      * @param name String

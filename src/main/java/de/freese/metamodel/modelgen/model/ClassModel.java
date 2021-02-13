@@ -2,7 +2,7 @@
  * Created: 29.07.2018
  */
 
-package de.freese.metamodel.codegen.model;
+package de.freese.metamodel.modelgen.model;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -10,14 +10,6 @@ public class UniqueConstraint extends AbstractIndex
 {
     /**
      * Erstellt ein neues {@link UniqueConstraint} Object.
-     */
-    public UniqueConstraint()
-    {
-        super();
-    }
-
-    /**
-     * Erstellt ein neues {@link UniqueConstraint} Object.
      *
      * @param table {@link Table}
      * @param name String

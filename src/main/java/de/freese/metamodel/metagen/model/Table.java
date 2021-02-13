@@ -65,14 +65,6 @@ public class Table
 
     /**
      * Erstellt ein neues {@link Table} Object.
-     */
-    public Table()
-    {
-        super();
-    }
-
-    /**
-     * Erstellt ein neues {@link Table} Object.
      *
      * @param schema {@link Schema}
      * @param name String
@@ -132,6 +124,19 @@ public class Table
     public String getComment()
     {
         return this.comment;
+    }
+
+    /**
+     * @return String
+     */
+    public String getFullName()
+    {
+        if (getSchema().getName() != null)
+        {
+            return getSchema().getName() + "." + getName();
+        }
+
+        return getName();
     }
 
     /**

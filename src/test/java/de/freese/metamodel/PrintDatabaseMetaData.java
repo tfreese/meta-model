@@ -38,7 +38,10 @@ public class PrintDatabaseMetaData
                               dbmd.getDatabaseProductVersion());
             // @formatter:on
 
+            // "PUBLIC"
             String schema = "PUBLIC";
+
+            // "T_%"
             String table = "T_%";
 
             printCatalogsAndSchemas(connection);

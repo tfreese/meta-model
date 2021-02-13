@@ -80,14 +80,6 @@ public class Column
 
     /**
      * Erstellt ein neues {@link Column} Object.
-     */
-    public Column()
-    {
-        super();
-    }
-
-    /**
-     * Erstellt ein neues {@link Column} Object.
      *
      * @param table {@link Table}
      * @param name String

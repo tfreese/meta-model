@@ -1,9 +1,6 @@
 // Created: 03.06.2016
 package de.freese.metamodel.metagen.model;
 
-import java.util.Objects;
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * Enthält die MetaDaten eines ForeignKeys.
  *
@@ -32,22 +29,6 @@ public class ForeignKey
     public ForeignKey()
     {
         super();
-    }
-
-    /**
-     * Erzeugt eine neue Instanz von {@link ForeignKey}
-     *
-     * @param name String
-     * @param column {@link Column}
-     * @param refColumn {@link Column}
-     */
-    ForeignKey(final String name, final Column column, final Column refColumn)
-    {
-        super();
-
-        this.name = Objects.requireNonNull(StringUtils.defaultIfBlank(name, null), "name required");
-        this.column = Objects.requireNonNull(column, "column required");
-        this.refColumn = Objects.requireNonNull(refColumn, "refColumn required");
     }
 
     /**

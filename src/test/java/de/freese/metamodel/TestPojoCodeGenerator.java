@@ -5,9 +5,13 @@
 package de.freese.metamodel;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.io.BufferedOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,10 +19,15 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import de.freese.metamodel.codegen.PojoCodeGenerator;
-import de.freese.metamodel.codegen.writer.JavaCodeWriter;
+import de.freese.metamodel.codewriter.AbstractCodeWriter;
+import de.freese.metamodel.codewriter.JavaCodeWriter;
 import de.freese.metamodel.metagen.HsqldbMetaExporter;
+import de.freese.metamodel.metagen.MetaExporter;
+import de.freese.metamodel.metagen.model.Schema;
+import de.freese.metamodel.modelgen.AbstractModelGenerator;
+import de.freese.metamodel.modelgen.PojoModelGenerator;
 import de.freese.metamodel.modelgen.mapping.JavaTypeMapping;
+import de.freese.metamodel.modelgen.model.ClassModel;
 
 /**
  * @author Thomas Freese
@@ -56,25 +65,48 @@ class TestPojoCodeGenerator
     @Order(1)
     void testCreate() throws Exception
     {
-        Path path = Paths.get("src/test/generated", "test", "pojo");
+        // MetaDaten extrahieren-
+        MetaExporter metaExporter = new HsqldbMetaExporter();
+        List<Schema> schemas = metaExporter.export(dataSource, "PUBLIC", null);
+
+        // MetaDaten in ClassModel umwandeln.
+        AbstractModelGenerator modelGenerator = new PojoModelGenerator();
+        modelGenerator.setAddFullConstructor(false);
+        // modelGenerator.setNamingStrategy(new DefaultNamingStrategy());
+        modelGenerator.setPackageName("test.pojo");
+        modelGenerator.setSerializeable(true);
+        modelGenerator.setTypeMapping(new JavaTypeMapping());
+        modelGenerator.setValidationAnnotations(false);
+
+        Path path = Paths.get("src/test/generated");
+        Path pathPojo = path.resolve("test").resolve("pojo");
+
+        Files.createDirectories(pathPojo);
+
         Files.deleteIfExists(path.resolve("Address.java"));
         Files.deleteIfExists(path.resolve("Person.java"));
 
-        PojoCodeGenerator codeGenerator = new PojoCodeGenerator();
-        codeGenerator.setMetaExporter(new HsqldbMetaExporter());
-        codeGenerator.setTypeMapping(new JavaTypeMapping());
-        codeGenerator.setCodeWriter(new JavaCodeWriter());
-        // codeGenerator.setNamingStrategy(new DefaultNamingStrategy());
-        codeGenerator.setSchemaName("PUBLIC");
-        codeGenerator.setTargetFolder(Paths.get("src/test/generated"));
-        codeGenerator.setPackageName("test.pojo");
-        codeGenerator.setSerializeable(true);
-        codeGenerator.setValidationAnnotations(true);
-        codeGenerator.setAddFullConstructor(true);
+        // ClassModel als Code schreiben.
+        AbstractCodeWriter codeWriter = new JavaCodeWriter();
 
-        codeGenerator.generate(dataSource);
+        for (Schema schema : schemas)
+        {
+            List<ClassModel> classModels = modelGenerator.generate(schema);
 
-        assertTrue(Files.exists(path.resolve("Address.java")));
-        assertTrue(Files.exists(path.resolve("Person.java")));
+            for (ClassModel classModel : classModels)
+            {
+                Path pathFile = pathPojo.resolve(classModel.getName() + codeWriter.getFileExtension());
+
+                try (PrintStream ps = new PrintStream(new BufferedOutputStream(Files.newOutputStream(pathFile)), true, StandardCharsets.UTF_8))
+                {
+                    codeWriter.write(classModel, ps);
+
+                    ps.flush();
+                }
+            }
+        }
+
+        assertTrue(Files.exists(pathPojo.resolve("Address.java")));
+        assertTrue(Files.exists(pathPojo.resolve("Person.java")));
     }
 }

@@ -41,14 +41,6 @@ public class Sequence
 
     /**
      * Erstellt ein neues {@link Sequence} Object.
-     */
-    public Sequence()
-    {
-        super();
-    }
-
-    /**
-     * Erstellt ein neues {@link Sequence} Object.
      *
      * @param schema {@link Schema}
      * @param name String

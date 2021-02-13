@@ -2,10 +2,10 @@
  * Created: 26.07.2018
  */
 
-package de.freese.metamodel.codegen.writer;
+package de.freese.metamodel.codewriter;
 
 import java.io.PrintStream;
-import de.freese.metamodel.codegen.model.ClassModel;
+import de.freese.metamodel.modelgen.model.ClassModel;
 
 /**
  * Erzeugt aus den MetaDaten den Quellcode.

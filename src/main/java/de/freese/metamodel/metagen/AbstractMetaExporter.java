@@ -8,6 +8,8 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +62,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
 
         if (getLogger().isDebugEnabled())
         {
-            getLogger().debug("Processing Column: {}.{}", table.getName(), columnName);
+            getLogger().debug("Processing Column: {}.{}", table.getFullName(), columnName);
         }
 
         Column column = table.getColumn(columnName);
@@ -104,7 +106,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
 
         if (getLogger().isDebugEnabled())
         {
-            getLogger().debug("Processing ForeignKey: {} on {}.{} -> {}.{}", fkName, table.getName(), columnName, refTableName, refColumnName);
+            getLogger().debug("Processing ForeignKey: {} on {}.{} -> {}.{}", fkName, table.getFullName(), columnName, refTableName, refColumnName);
         }
 
         Column column = table.getColumn(columnName);
@@ -150,7 +152,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
 
         if (getLogger().isDebugEnabled())
         {
-            getLogger().debug("Processing Index: {} on {}.{}", indexName, table.getName(), columnName);
+            getLogger().debug("Processing Index: {} on {}.{}", indexName, table.getFullName(), columnName);
         }
 
         Column column = table.getColumn(columnName);
@@ -187,10 +189,32 @@ public abstract class AbstractMetaExporter implements MetaExporter
 
         if (getLogger().isDebugEnabled())
         {
-            getLogger().debug("Processing PrimaryKey: {} on {}.{}", pkName, table.getName(), columnName);
+            getLogger().debug("Processing PrimaryKey: {} on {}.{}", pkName, table.getFullName(), columnName);
         }
 
         table.addPrimaryKeycolumn(pkName, keyColumnIndex, columnName);
+    }
+
+    /**
+     * Erzeugt das Meta-Modell eines Schemas.
+     *
+     * @param resultSet ResultSet {@link ResultSet}
+     * @return {@link Schema}
+     * @throws SQLException Falls was schief geht.
+     */
+    protected Schema createSchema(final ResultSet resultSet) throws SQLException
+    {
+        String schemaName = resultSet.getString("TABLE_SCHEM");
+
+        if (getLogger().isDebugEnabled())
+        {
+            getLogger().debug("Processing Schema: {}", schemaName);
+        }
+
+        Schema schema = new Schema();
+        schema.setName(schemaName);
+
+        return schema;
     }
 
     /**
@@ -203,7 +227,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
     protected void createTable(final Schema schema, final ResultSet resultSet) throws SQLException
     {
         // String catalog = resultSet.getString("TABLE_CAT");
-        // String schema = resultSet.getString("TABLE_SCHEM");
+        String schemaName = resultSet.getString("TABLE_SCHEM");
         String tableName = resultSet.getString("TABLE_NAME");
         String comment = resultSet.getString("REMARKS");
 
@@ -214,7 +238,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
 
         if (getLogger().isDebugEnabled())
         {
-            getLogger().debug("Processing Table: {}", tableName);
+            getLogger().debug("Processing Table: {}.{}", schemaName, tableName);
         }
 
         Table table = schema.getTable(tableName);
@@ -225,51 +249,53 @@ public abstract class AbstractMetaExporter implements MetaExporter
      * @see de.freese.metamodel.metagen.MetaExporter#export(javax.sql.DataSource, java.lang.String, java.lang.String)
      */
     @Override
-    public Schema export(final DataSource dataSource, final String schemaName, final String tableNamePattern) throws Exception
+    public List<Schema> export(final DataSource dataSource, final String schemaNamePattern, final String tableNamePattern) throws Exception
     {
         Objects.requireNonNull(dataSource, "dataSource required");
 
-        if (StringUtils.isBlank(schemaName))
+        List<Schema> schemas = generateSchemas(dataSource, schemaNamePattern);
+
+        for (Schema schema : schemas)
         {
-            throw new IllegalArgumentException("schemaName required");
+            // Tabellen des Schemas
+            generateTables(dataSource, schema, tableNamePattern);
+
+            if (schema.getTables().isEmpty())
+            {
+                continue;
+            }
+
+            // Sequences des Schemas
+            generateSequences(dataSource, schema);
+
+            // Spalten der Tabellen
+            for (Table table : schema.getTables())
+            {
+                generateColumns(dataSource, table);
+            }
+
+            // PrimaryKeys der Tabellen
+            for (Table table : schema.getTables())
+            {
+                generatePrimaryKeys(dataSource, table);
+            }
+
+            // ForeignKeys der Spalten
+            for (Table table : schema.getTables())
+            {
+                generateForeignKeys(dataSource, table);
+            }
+
+            // Indices der Tabelle
+            for (Table table : schema.getTables())
+            {
+                generateIndices(dataSource, table);
+            }
+
+            schema.validate();
         }
 
-        Schema schema = new Schema();
-        schema.setName(schemaName);
-
-        // Tabellen des Schemas
-        generateTables(dataSource, schema, tableNamePattern);
-
-        // Sequences des Schemas
-        generateSequences(dataSource, schema);
-
-        // Spalten der Tabellen
-        for (Table table : schema.getTables())
-        {
-            generateColumns(dataSource, table);
-        }
-
-        // PrimaryKeys der Tabellen
-        for (Table table : schema.getTables())
-        {
-            generatePrimaryKeys(dataSource, table);
-        }
-
-        // ForeignKeys der Spalten
-        for (Table table : schema.getTables())
-        {
-            generateForeignKeys(dataSource, table);
-        }
-
-        // Indices der Tabelle
-        for (Table table : schema.getTables())
-        {
-            generateIndices(dataSource, table);
-        }
-
-        schema.validate();
-
-        return schema;
+        return schemas;
     }
 
     /**
@@ -314,7 +340,7 @@ public abstract class AbstractMetaExporter implements MetaExporter
             }
 
             // ForeignKeys auf diese Tabelle.
-            // try (ResultSet resultSet = dbmd.getExportedKeys(table.getSchema().getName(), table.getSchema().getName(), table.getName()))
+            // try (ResultSet resultSet = dbmd.getExportedKeys(null, table.getSchema().getName(), table.getName()))
             // {
             // while (resultSet.next())
             // {
@@ -364,6 +390,34 @@ public abstract class AbstractMetaExporter implements MetaExporter
                 }
             }
         }
+    }
+
+    /**
+     * @param dataSource {@link DataSource}
+     * @param schemaNamePattern {@link Schema}
+     * @return {@link List}
+     * @throws SQLException Falls was schief geht.
+     */
+    protected List<Schema> generateSchemas(final DataSource dataSource, final String schemaNamePattern) throws SQLException
+    {
+        List<Schema> schemas = new ArrayList<>();
+
+        try (Connection connection = dataSource.getConnection())
+        {
+            DatabaseMetaData dbmd = connection.getMetaData();
+
+            try (ResultSet resultSet = dbmd.getSchemas(null, schemaNamePattern))
+            {
+                while (resultSet.next())
+                {
+                    Schema schema = createSchema(resultSet);
+
+                    schemas.add(schema);
+                }
+            }
+        }
+
+        return schemas;
     }
 
     /**

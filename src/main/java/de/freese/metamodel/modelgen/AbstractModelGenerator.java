@@ -2,53 +2,38 @@
  * Created: 22.04.2020
  */
 
-package de.freese.metamodel.codegen;
+package de.freese.metamodel.modelgen;
 
-import java.io.BufferedOutputStream;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.JDBCType;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.sql.DataSource;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import org.apache.commons.lang3.StringUtils;
-import de.freese.metamodel.codegen.model.ClassModel;
-import de.freese.metamodel.codegen.model.FieldModel;
-import de.freese.metamodel.codegen.writer.CodeWriter;
-import de.freese.metamodel.metagen.MetaExporter;
 import de.freese.metamodel.metagen.model.Column;
 import de.freese.metamodel.metagen.model.Schema;
 import de.freese.metamodel.metagen.model.Table;
 import de.freese.metamodel.modelgen.mapping.ClassType;
 import de.freese.metamodel.modelgen.mapping.TypeMapping;
+import de.freese.metamodel.modelgen.model.ClassModel;
+import de.freese.metamodel.modelgen.model.FieldModel;
 import de.freese.metamodel.modelgen.naming.DefaultNamingStrategy;
 import de.freese.metamodel.modelgen.naming.NamingStrategy;
 
 /**
+ * Erzeugt aus den MetaDaten das CodeModel.
+ *
  * @author Thomas Freese
  */
-public abstract class AbstractCodeGenerator
+public abstract class AbstractModelGenerator
 {
     /**
     *
     */
     private boolean addFullConstructor;
-
-    /**
-    *
-    */
-    private CodeWriter codeWriter;
-
-    /**
-    *
-    */
-    private MetaExporter metaExporter;
 
     /**
     *
@@ -63,22 +48,7 @@ public abstract class AbstractCodeGenerator
     /**
     *
     */
-    private String schemaName;
-
-    /**
-    *
-    */
     private boolean serializeable;
-
-    /**
-    *
-    */
-    private String tableNamePattern;
-
-    /**
-    *
-    */
-    private Path targetFolder;
 
     /**
     *
@@ -91,35 +61,16 @@ public abstract class AbstractCodeGenerator
     private boolean validationAnnotations;
 
     /**
-     * Erstellt ein neues {@link AbstractCodeGenerator} Object.
-     */
-    protected AbstractCodeGenerator()
-    {
-        super();
-    }
-
-    /**
-     * Erzeugt den Quellcode aus dem MetaModel.
+     * Erzeugt aus dem MetaModel das CodeModel.
      *
-     * @param dataSource {@link DataSource}
-     * @throws Exception Falls was schief geht.
+     * @param schema {@link Schema}
+     * @return {@link List}
      */
-    public void generate(final DataSource dataSource) throws Exception
+    public List<ClassModel> generate(final Schema schema)
     {
-        // Export MetaModel.
-        Objects.requireNonNull(dataSource, "dataSource required");
-        Objects.requireNonNull(this.metaExporter, "metaExporter required");
+        Objects.requireNonNull(schema, "schema required");
 
-        if (StringUtils.isBlank(this.schemaName))
-        {
-            throw new IllegalArgumentException("schemaName required");
-        }
-
-        Schema schema = this.metaExporter.export(dataSource, this.schemaName, this.tableNamePattern);
-
-        // Code schreiben
-        Objects.requireNonNull(this.targetFolder, "targetFolder required");
-        Objects.requireNonNull(this.codeWriter, "codeWriter required");
+        List<ClassModel> classModels = new ArrayList<>(schema.getTables().size());
 
         for (Table table : schema.getTables())
         {
@@ -140,33 +91,10 @@ public abstract class AbstractCodeGenerator
                     ;
             // @formatter:on
 
-            // Datei schreiben.
-            String packageDirectory = getPackageName().replace(".", "/");
-            Path folder = getTargetFolder().resolve(packageDirectory);
-
-            if (!Files.exists(folder))
-            {
-                Files.createDirectories(folder);
-            }
-
-            String fileName = getNamingStrategy().getClassName(table.getName()) + getCodeWriter().getFileExtension();
-            Path path = folder.resolve(fileName);
-
-            try (PrintStream ps = new PrintStream(new BufferedOutputStream(Files.newOutputStream(path)), true, StandardCharsets.UTF_8))
-            {
-                getCodeWriter().write(classModel, ps);
-
-                ps.flush();
-            }
+            classModels.add(classModel);
         }
-    }
 
-    /**
-     * @return {@link CodeWriter}
-     */
-    protected CodeWriter getCodeWriter()
-    {
-        return this.codeWriter;
+        return classModels;
     }
 
     /**
@@ -232,14 +160,6 @@ public abstract class AbstractCodeGenerator
     }
 
     /**
-     * @return {@link Path}
-     */
-    protected Path getTargetFolder()
-    {
-        return this.targetFolder;
-    }
-
-    /**
      * @return {@link TypeMapping}
      */
     protected TypeMapping getTypeMapping()
@@ -282,22 +202,6 @@ public abstract class AbstractCodeGenerator
     }
 
     /**
-     * @param codeWriter {@link CodeWriter}
-     */
-    public void setCodeWriter(final CodeWriter codeWriter)
-    {
-        this.codeWriter = codeWriter;
-    }
-
-    /**
-     * @param metaExporter {@link MetaExporter}
-     */
-    public void setMetaExporter(final MetaExporter metaExporter)
-    {
-        this.metaExporter = metaExporter;
-    }
-
-    /**
      * @param namingStrategy {@link NamingStrategy}
      */
     public void setNamingStrategy(final NamingStrategy namingStrategy)
@@ -314,38 +218,11 @@ public abstract class AbstractCodeGenerator
     }
 
     /**
-     * @param schemaName String
-     */
-    public void setSchemaName(final String schemaName)
-    {
-        this.schemaName = schemaName;
-    }
-
-    /**
      * @param serializeable boolean
      */
     public void setSerializeable(final boolean serializeable)
     {
         this.serializeable = serializeable;
-    }
-
-    /**
-     * @param tableNamePattern String
-     */
-    public void setTableNamePattern(final String tableNamePattern)
-    {
-        this.tableNamePattern = tableNamePattern;
-    }
-
-    /**
-     * Verzeichnis in die Klassen generiert werden.<br>
-     *
-     * @see #setPackageName(String)
-     * @param targetFolder {@link Path}
-     */
-    public void setTargetFolder(final Path targetFolder)
-    {
-        this.targetFolder = targetFolder;
     }
 
     /**
@@ -413,7 +290,6 @@ public abstract class AbstractCodeGenerator
         ClassType type = (ClassType) getTypeMapping().getType(column.getJdbcType(), column.isNullable());
 
         FieldModel fieldModel = classModel.addField(fieldName, type.getJavaClass());
-        fieldModel.setDefaultValueAsString(type.getDefaultValueAsString());
         fieldModel.setPayload(column);
 
         transformFieldComments(column, fieldModel);

@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import de.freese.metamodel.TestUtil;
@@ -28,13 +29,18 @@ import de.freese.metamodel.metagen.model.UniqueConstraint;
 /**
  * @author Thomas Freese
  */
-@TestMethodOrder(MethodOrderer.MethodName.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TestHsqlPersonDb
 {
     /**
     *
     */
     private static DataSource dataSource = null;
+
+    /**
+     * "PUBLIC"
+     */
+    private static final String SCHEMA_NAME = "PUBLIC";
 
     /**
      * @throws Exception Falls was schief geht.
@@ -57,73 +63,22 @@ class TestHsqlPersonDb
     /**
      *
      */
-    private final MetaExporter generator = new HsqldbMetaExporter();
-
-    /**
-     *
-     */
-    private final String schemaName = "PUBLIC";
+    private final MetaExporter metaExporter = new HsqldbMetaExporter();
 
     /**
      * @throws Exception Falls was schief geht.
      */
     @Test
-    void test010Schema() throws Exception
+    @Order(40)
+    void testColumns() throws Exception
     {
-        Schema schema = this.generator.export(dataSource, this.schemaName, null);
-        assertNotNull(schema);
-        assertEquals(this.schemaName, schema.getName());
-    }
+        List<Schema> schemas = this.metaExporter.export(dataSource, SCHEMA_NAME, "T_PERSON");
 
-    /**
-     * @throws Exception Falls was schief geht.
-     */
-    @Test
-    void test020Sequences() throws Exception
-    {
-        Schema schema = this.generator.export(dataSource, this.schemaName, null);
-        assertNotNull(schema);
-        assertEquals(this.schemaName, schema.getName());
+        assertNotNull(schemas);
+        assertEquals(1, schemas.size());
+        assertEquals(SCHEMA_NAME, schemas.get(0).getName());
 
-        List<Sequence> sequences = schema.getSequences();
-        assertNotNull(sequences);
-        assertEquals(2, sequences.size());
-
-        Collections.sort(sequences, Comparator.comparing(Sequence::getName));
-        assertEquals("ADDRESS_SEQ", sequences.get(0).getName());
-        assertEquals("PERSON_SEQ", sequences.get(1).getName());
-    }
-
-    /**
-     * @throws Exception Falls was schief geht.
-     */
-    @Test
-    void test030Table() throws Exception
-    {
-        Schema schema = this.generator.export(dataSource, this.schemaName, null);
-        assertNotNull(schema);
-        assertEquals(this.schemaName, schema.getName());
-
-        List<Table> tables = schema.getTables();
-        assertNotNull(tables);
-        assertEquals(2, tables.size());
-
-        Collections.sort(tables, Comparator.comparing(Table::getName));
-        assertEquals("T_ADDRESS", tables.get(0).getName());
-        assertEquals("T_PERSON", tables.get(1).getName());
-    }
-
-    /**
-     * @throws Exception Falls was schief geht.
-     */
-    @Test
-    void test040Columns() throws Exception
-    {
-        Schema schema = this.generator.export(dataSource, this.schemaName, "T_PERSON");
-        assertNotNull(schema);
-        assertEquals(this.schemaName, schema.getName());
-
-        List<Table> tables = schema.getTables();
+        List<Table> tables = schemas.get(0).getTables();
         assertNotNull(tables);
         assertEquals(1, tables.size());
 
@@ -139,40 +94,21 @@ class TestHsqlPersonDb
     }
 
     /**
-     * @throws Exception Falls was schief geht.
-     */
-    @Test
-    void test050PrimaryKey() throws Exception
-    {
-        Schema schema = this.generator.export(dataSource, this.schemaName, "T_PERSON");
-        assertNotNull(schema);
-        assertEquals(this.schemaName, schema.getName());
-
-        Table table = schema.getTable("T_PERSON");
-        assertNotNull(table);
-
-        PrimaryKey primaryKey = table.getPrimaryKey();
-        assertNotNull(primaryKey);
-        assertEquals("PERSON_PK", primaryKey.getName());
-
-        List<Column> columns = primaryKey.getColumnsOrdered();
-        assertEquals(1, columns.size());
-        assertEquals("ID", columns.get(0).getName());
-    }
-
-    /**
      * T_ADDRESS.PERSON_ID -> T_PERSON.ID
      *
      * @throws Exception Falls was schief geht.
      */
     @Test
-    void test060ForeignKey() throws Exception
+    @Order(60)
+    void testForeignKey() throws Exception
     {
-        Schema schema = this.generator.export(dataSource, this.schemaName, "T_ADDRESS");
-        assertNotNull(schema);
-        assertEquals(this.schemaName, schema.getName());
+        List<Schema> schemas = this.metaExporter.export(dataSource, SCHEMA_NAME, "T_ADDRESS");
 
-        Table table = schema.getTable("T_ADDRESS");
+        assertNotNull(schemas);
+        assertEquals(1, schemas.size());
+        assertEquals(SCHEMA_NAME, schemas.get(0).getName());
+
+        Table table = schemas.get(0).getTable("T_ADDRESS");
         assertNotNull(table);
 
         Column column = table.getColumn("PERSON_ID");
@@ -196,13 +132,16 @@ class TestHsqlPersonDb
      * @throws Exception Falls was schief geht.
      */
     @Test
-    void test070Indices() throws Exception
+    @Order(70)
+    void testIndices() throws Exception
     {
-        Schema schema = this.generator.export(dataSource, this.schemaName, "T_PERSON");
-        assertNotNull(schema);
-        assertEquals(this.schemaName, schema.getName());
+        List<Schema> schemas = this.metaExporter.export(dataSource, SCHEMA_NAME, "T_PERSON");
 
-        Table table = schema.getTable("T_PERSON");
+        assertNotNull(schemas);
+        assertEquals(1, schemas.size());
+        assertEquals(SCHEMA_NAME, schemas.get(0).getName());
+
+        Table table = schemas.get(0).getTable("T_PERSON");
         assertNotNull(table);
 
         // UniqueConstraint
@@ -231,5 +170,87 @@ class TestHsqlPersonDb
         assertNotNull(columns);
         assertEquals(1, columns.size());
         assertEquals("NAME", columns.get(0).getName());
+    }
+
+    /**
+     * @throws Exception Falls was schief geht.
+     */
+    @Test
+    @Order(50)
+    void testPrimaryKey() throws Exception
+    {
+        List<Schema> schemas = this.metaExporter.export(dataSource, SCHEMA_NAME, "T_PERSON");
+
+        assertNotNull(schemas);
+        assertEquals(1, schemas.size());
+        assertEquals(SCHEMA_NAME, schemas.get(0).getName());
+
+        Table table = schemas.get(0).getTable("T_PERSON");
+        assertNotNull(table);
+
+        PrimaryKey primaryKey = table.getPrimaryKey();
+        assertNotNull(primaryKey);
+        assertEquals("PERSON_PK", primaryKey.getName());
+
+        List<Column> columns = primaryKey.getColumnsOrdered();
+        assertEquals(1, columns.size());
+        assertEquals("ID", columns.get(0).getName());
+    }
+
+    /**
+     * @throws Exception Falls was schief geht.
+     */
+    @Test
+    @Order(10)
+    void testSchema() throws Exception
+    {
+        List<Schema> schemas = this.metaExporter.export(dataSource, null, null);
+
+        assertNotNull(schemas);
+        assertEquals(3, schemas.size());
+    }
+
+    /**
+     * @throws Exception Falls was schief geht.
+     */
+    @Test
+    @Order(20)
+    void testSequences() throws Exception
+    {
+        List<Schema> schemas = this.metaExporter.export(dataSource, SCHEMA_NAME, null);
+
+        assertNotNull(schemas);
+        assertEquals(1, schemas.size());
+        assertEquals(SCHEMA_NAME, schemas.get(0).getName());
+
+        List<Sequence> sequences = schemas.get(0).getSequences();
+        assertNotNull(sequences);
+        assertEquals(2, sequences.size());
+
+        Collections.sort(sequences, Comparator.comparing(Sequence::getName));
+        assertEquals("ADDRESS_SEQ", sequences.get(0).getName());
+        assertEquals("PERSON_SEQ", sequences.get(1).getName());
+    }
+
+    /**
+     * @throws Exception Falls was schief geht.
+     */
+    @Test
+    @Order(30)
+    void testTable() throws Exception
+    {
+        List<Schema> schemas = this.metaExporter.export(dataSource, SCHEMA_NAME, null);
+
+        assertNotNull(schemas);
+        assertEquals(1, schemas.size());
+        assertEquals(SCHEMA_NAME, schemas.get(0).getName());
+
+        List<Table> tables = schemas.get(0).getTables();
+        assertNotNull(tables);
+        assertEquals(2, tables.size());
+
+        Collections.sort(tables, Comparator.comparing(Table::getName));
+        assertEquals("T_ADDRESS", tables.get(0).getName());
+        assertEquals("T_PERSON", tables.get(1).getName());
     }
 }

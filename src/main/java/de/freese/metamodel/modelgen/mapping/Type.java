@@ -18,16 +18,6 @@ public interface Type
     /**
      * @return String
      */
-    public String getDefaultValueAsString();
-
-    // /**
-    // * @return Class<?>
-    // */
-    // public Class<?> getJavaClass();
-
-    /**
-     * @return String
-     */
     public String getSimpleName();
 
     /**

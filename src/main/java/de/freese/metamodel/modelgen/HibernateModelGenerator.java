@@ -2,7 +2,7 @@
  * Created: 22.04.2020
  */
 
-package de.freese.metamodel.codegen;
+package de.freese.metamodel.modelgen;
 
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -14,19 +14,19 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import de.freese.metamodel.codegen.model.ClassModel;
-import de.freese.metamodel.codegen.model.FieldModel;
 import de.freese.metamodel.metagen.model.Column;
 import de.freese.metamodel.metagen.model.Table;
+import de.freese.metamodel.modelgen.model.ClassModel;
+import de.freese.metamodel.modelgen.model.FieldModel;
 
 /**
  * @author Thomas Freese
  */
-public class HibernateCodeGenerator extends JpaCodeGenerator
+public class HibernateModelGenerator extends JpaModelGenerator
 {
     /**
-     * @see de.freese.metamodel.codegen.JpaCodeGenerator#transformClassAnnotations(de.freese.metamodel.metagen.model.Table,
-     *      de.freese.metamodel.codegen.model.ClassModel)
+     * @see de.freese.metamodel.modelgen.JpaModelGenerator#transformClassAnnotations(de.freese.metamodel.metagen.model.Table,
+     *      de.freese.metamodel.modelgen.model.ClassModel)
      */
     @Override
     protected void transformClassAnnotations(final Table table, final ClassModel classModel)
@@ -62,8 +62,8 @@ public class HibernateCodeGenerator extends JpaCodeGenerator
     }
 
     /**
-     * @see de.freese.metamodel.codegen.JpaCodeGenerator#transformClassJavaDoc(de.freese.metamodel.metagen.model.Table,
-     *      de.freese.metamodel.codegen.model.ClassModel)
+     * @see de.freese.metamodel.modelgen.JpaModelGenerator#transformClassJavaDoc(de.freese.metamodel.metagen.model.Table,
+     *      de.freese.metamodel.modelgen.model.ClassModel)
      */
     @Override
     protected void transformClassJavaDoc(final Table table, final ClassModel classModel)
@@ -73,12 +73,12 @@ public class HibernateCodeGenerator extends JpaCodeGenerator
             classModel.addComment(table.getComment());
         }
 
-        classModel.addComment("Hibernate-Entity für Tabelle " + table.getSchema().getName() + "." + table.getName() + ".");
+        classModel.addComment("Hibernate-Entity für Tabelle " + table.getFullName() + ".");
     }
 
     /**
-     * @see de.freese.metamodel.codegen.JpaCodeGenerator#transformFieldAnnotations(de.freese.metamodel.metagen.model.Column,
-     *      de.freese.metamodel.codegen.model.FieldModel)
+     * @see de.freese.metamodel.modelgen.JpaModelGenerator#transformFieldAnnotations(de.freese.metamodel.metagen.model.Column,
+     *      de.freese.metamodel.modelgen.model.FieldModel)
      */
     @Override
     protected void transformFieldAnnotations(final Column column, final FieldModel fieldModel)

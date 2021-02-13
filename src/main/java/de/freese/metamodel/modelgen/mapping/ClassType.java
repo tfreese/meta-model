@@ -15,25 +15,18 @@ public class ClassType implements Type
     /**
     *
     */
-    private final String defaultValueAsString;
-
-    /**
-    *
-    */
     private final Class<?> javaClass;
 
     /**
      * Erstellt ein neues {@link ClassType} Object.
      *
      * @param javaClass {@link Class}
-     * @param defaultValueAsString String
      */
-    public ClassType(final Class<?> javaClass, final String defaultValueAsString)
+    public ClassType(final Class<?> javaClass)
     {
         super();
 
         this.javaClass = Objects.requireNonNull(javaClass, "javaClass required");
-        this.defaultValueAsString = Objects.requireNonNull(defaultValueAsString, "defaultValueAsString required");
     }
 
     /**
@@ -43,15 +36,6 @@ public class ClassType implements Type
     public boolean equals(final Class<?> clazz)
     {
         return getJavaClass().equals(clazz);
-    }
-
-    /**
-     * @see de.freese.metamodel.modelgen.mapping.Type#getDefaultValueAsString()
-     */
-    @Override
-    public String getDefaultValueAsString()
-    {
-        return this.defaultValueAsString;
     }
 
     /**

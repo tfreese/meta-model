@@ -2,7 +2,7 @@
  * Created: 29.07.2018
  */
 
-package de.freese.metamodel.codegen.model;
+package de.freese.metamodel.modelgen.model;
 
 import java.util.Objects;
 import de.freese.metamodel.ClassUtils;
@@ -18,11 +18,6 @@ public class FieldModel extends AbstractModel
      *
      */
     private final ClassModel classModel;
-
-    /**
-    *
-    */
-    private String defaultValueAsString;
 
     /**
      *
@@ -78,14 +73,6 @@ public class FieldModel extends AbstractModel
     public ClassModel getClassModel()
     {
         return this.classModel;
-    }
-
-    /**
-     * @return String
-     */
-    public String getDefaultValueAsString()
-    {
-        return this.defaultValueAsString;
     }
 
     /**
@@ -229,14 +216,6 @@ public class FieldModel extends AbstractModel
     public void setCollection(final boolean isCollection)
     {
         this.isCollection = isCollection;
-    }
-
-    /**
-     * @param defaultValueAsString String
-     */
-    public void setDefaultValueAsString(final String defaultValueAsString)
-    {
-        this.defaultValueAsString = defaultValueAsString;
     }
 
     /**

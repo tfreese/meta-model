@@ -2,7 +2,7 @@
  * Created: 22.04.2020
  */
 
-package de.freese.metamodel.codegen;
+package de.freese.metamodel.modelgen;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -22,8 +22,6 @@ import javax.persistence.NamedNativeQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import org.apache.commons.lang3.StringUtils;
-import de.freese.metamodel.codegen.model.ClassModel;
-import de.freese.metamodel.codegen.model.FieldModel;
 import de.freese.metamodel.metagen.model.Column;
 import de.freese.metamodel.metagen.model.ForeignKey;
 import de.freese.metamodel.metagen.model.Sequence;
@@ -31,15 +29,17 @@ import de.freese.metamodel.metagen.model.Table;
 import de.freese.metamodel.metagen.model.UniqueConstraint;
 import de.freese.metamodel.modelgen.mapping.ClassType;
 import de.freese.metamodel.modelgen.mapping.Type;
+import de.freese.metamodel.modelgen.model.ClassModel;
+import de.freese.metamodel.modelgen.model.FieldModel;
 
 /**
  * @author Thomas Freese
  */
-public class JpaCodeGenerator extends PojoCodeGenerator
+public class JpaModelGenerator extends PojoModelGenerator
 {
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeGenerator#transformClassAnnotations(de.freese.metamodel.metagen.model.Table,
-     *      de.freese.metamodel.codegen.model.ClassModel)
+     * @see de.freese.metamodel.modelgen.AbstractModelGenerator#transformClassAnnotations(de.freese.metamodel.metagen.model.Table,
+     *      de.freese.metamodel.modelgen.model.ClassModel)
      */
     @Override
     protected void transformClassAnnotations(final Table table, final ClassModel classModel)
@@ -54,7 +54,11 @@ public class JpaCodeGenerator extends PojoCodeGenerator
         StringBuilder sb = new StringBuilder();
         sb.append("@Table(");
         sb.append("name = \"").append(table.getName()).append("\"");
-        sb.append(", schema = \"").append(table.getSchema().getName()).append("\"");
+
+        if (StringUtils.isNotBlank(table.getSchema().getName()))
+        {
+            sb.append(", schema = \"").append(table.getSchema().getName()).append("\"");
+        }
 
         if (!table.getUniqueConstraints().isEmpty())
         {
@@ -101,8 +105,8 @@ public class JpaCodeGenerator extends PojoCodeGenerator
     }
 
     /**
-     * @see de.freese.metamodel.codegen.PojoCodeGenerator#transformClassJavaDoc(de.freese.metamodel.metagen.model.Table,
-     *      de.freese.metamodel.codegen.model.ClassModel)
+     * @see de.freese.metamodel.modelgen.PojoModelGenerator#transformClassJavaDoc(de.freese.metamodel.metagen.model.Table,
+     *      de.freese.metamodel.modelgen.model.ClassModel)
      */
     @Override
     protected void transformClassJavaDoc(final Table table, final ClassModel classModel)
@@ -112,12 +116,12 @@ public class JpaCodeGenerator extends PojoCodeGenerator
             classModel.addComment(table.getComment());
         }
 
-        classModel.addComment("JPA-Entity für Tabelle " + table.getSchema().getName() + "." + table.getName() + ".");
+        classModel.addComment("JPA-Entity für Tabelle " + table.getFullName() + ".");
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeGenerator#transformField(de.freese.metamodel.metagen.model.Column,
-     *      de.freese.metamodel.codegen.model.ClassModel)
+     * @see de.freese.metamodel.modelgen.AbstractModelGenerator#transformField(de.freese.metamodel.metagen.model.Column,
+     *      de.freese.metamodel.modelgen.model.ClassModel)
      */
     @Override
     protected void transformField(final Column column, final ClassModel classModel)
@@ -132,7 +136,6 @@ public class JpaCodeGenerator extends PojoCodeGenerator
 
             // Normales Attribut
             FieldModel fieldModel = classModel.addField(fieldName, type.getJavaClass());
-            fieldModel.setDefaultValueAsString(type.getDefaultValueAsString());
             fieldModel.setPayload(column);
 
             transformFieldComments(column, fieldModel);
@@ -175,7 +178,6 @@ public class JpaCodeGenerator extends PojoCodeGenerator
                 FieldModel fieldModel = classModel.addField(refClassName.toLowerCase() + "es", getPackageName() + "." + refClassName);
                 fieldModel.setAssoziationn(true);
                 fieldModel.setCollection(true);
-                fieldModel.setDefaultValueAsString("new ArrayList<>()");
                 fieldModel.setPayload(column);
 
                 classModel.addImport(List.class);
@@ -199,8 +201,8 @@ public class JpaCodeGenerator extends PojoCodeGenerator
     }
 
     /**
-     * @see de.freese.metamodel.codegen.AbstractCodeGenerator#transformFieldAnnotations(de.freese.metamodel.metagen.model.Column,
-     *      de.freese.metamodel.codegen.model.FieldModel)
+     * @see de.freese.metamodel.modelgen.AbstractModelGenerator#transformFieldAnnotations(de.freese.metamodel.metagen.model.Column,
+     *      de.freese.metamodel.modelgen.model.FieldModel)
      */
     @Override
     protected void transformFieldAnnotations(final Column column, final FieldModel fieldModel)
