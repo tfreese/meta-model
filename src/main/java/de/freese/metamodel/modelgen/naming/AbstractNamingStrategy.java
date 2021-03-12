@@ -32,7 +32,7 @@ public abstract class AbstractNamingStrategy implements NamingStrategy
     {
         if (value != null)
         {
-            return value.trim().replaceAll("\r", " ").replaceAll("\n", " ").toLowerCase();
+            return value.trim().replace('\r', ' ').replace('\n', ' ').toLowerCase();
         }
 
         return null;
